@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>CareGraph — Companion</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #fafaf8; color: #444;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  #bigbtn {
+    width: 60vmin; height: 60vmin; border-radius: 50%;
+    border: none; outline: none; cursor: pointer;
+    background: #e4e4e2; color: #6b6b68;
+    font-size: calc(12px + 2.4vmin); font-family: inherit;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    transition: background 0.4s ease, color 0.4s ease;
+  }
+  #bigbtn:focus-visible { box-shadow: 0 0 0 4px #b8d4c2, 0 4px 24px rgba(0,0,0,0.08); }
+  #bigbtn.recording {
+    background: #cfe8d6; color: #3d6b4c;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(111, 173, 134, 0.35); }
+    50%      { box-shadow: 0 0 0 4vmin rgba(111, 173, 134, 0.0); }
+  }
+  #hint {
+    min-height: 1.5em; margin-top: 3vmin; font-size: 15px; color: #b0aead;
+    opacity: 0; transition: opacity 0.5s;
+  }
+  #hint.show { opacity: 1; }
+  #lastline {
+    position: fixed; bottom: 64px; left: 0; right: 0; text-align: center;
+    padding: 0 24px; font-size: 14px; color: #c2c0be; font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #eef6f0; color: #4a7a5a; font-size: 13px;
+    padding: 6px 16px; border-radius: 16px;
+    opacity: 0; transition: opacity 0.4s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; }
+  #fallback { display: none; text-align: center; padding: 0 24px; }
+  #fallback p { color: #8a8886; font-size: 15px; }
+  #fallback input {
+    font-size: 18px; padding: 14px 16px; width: min(70vw, 380px);
+    border: 1px solid #d8d6d4; border-radius: 12px; font-family: inherit;
+  }
+  #fallback button {
+    font-size: 18px; padding: 14px 28px; margin-left: 8px;
+    border: none; border-radius: 12px; background: #cfe8d6; color: #3d6b4c;
+    cursor: pointer; font-family: inherit;
+  }
+  footer {
+    position: fixed; bottom: 16px; left: 0; right: 0; text-align: center;
+    font-size: 12px; color: #cfcdcb;
+  }
+</style>
+</head>
+<body>
+
+<div id="toast">✓ remembered</div>
+
+<button id="bigbtn" aria-label="Hold to listen">Hold to listen</button>
+<div id="hint">hold the button</div>
+
+<div id="fallback">
+  <p>Voice needs Chrome/Android. Type instead:</p>
+  <input id="ftext" placeholder="What was said…" autocomplete="off">
+  <button id="fsend">Send</button>
+</div>
+
+<div id="lastline"></div>
+<footer>Demo data — simulated. Audio never leaves the device.</footer>
+
+<script>
+const API = new URLSearchParams(location.search).get('api') || localStorage.getItem('api') || 'http://localhost:8000';
+const WALKER = n => API + '/walker/' + n;
+async function callWalker(name, body = {}) {
+  const r = await fetch(WALKER(name), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(name + ' ' + r.status);
+  const j = await r.json();
+  return j.reports ? j.reports[0] ?? j : j;
+}
+const qs = new URLSearchParams(location.search);
+if (qs.get('api')) localStorage.setItem('api', qs.get('api'));
+
+const BATCH_MS = parseInt(qs.get('batch') || '10000');
+const LANG = qs.get('lang') || 'en-US';
+
+const btn = document.getElementById('bigbtn');
+const hint = document.getElementById('hint');
+const lastline = document.getElementById('lastline');
+const toast = document.getElementById('toast');
+
+let recording = false;
+let buffer = [];          // final transcript lines waiting to ship
+let rec = null;
+let batchTimer = null;
+let toastTimer = null;
+
+function showToast() {
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
+}
+let hintTimer = null;
+function showHint() {
+  hint.classList.add('show');
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => hint.classList.remove('show'), 1800);
+}
+
+// --- shipping: never lose the buffer on failure ---
+let shipping = false;
+async function ship() {
+  if (buffer.length === 0 || shipping) return;
+  shipping = true;
+  const batch = buffer;
+  buffer = [];
+  try {
+    await callWalker('ingest_batch', {
+      source: 'L1_wearable',
+      text: batch.join(' '),
+      ts: new Date().toISOString()
+    });
+    showToast();
+  } catch (e) {
+    buffer = batch.concat(buffer);        // requeue — transcript is never lost
+    setTimeout(ship, 3000);               // retry even if the batch timer stopped
+  } finally {
+    shipping = false;
+  }
+}
+
+// --- speech recognition with essential auto-restart loop ---
+const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
+
+function startRecognition() {
+  rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = false;
+  rec.lang = LANG;
+  rec.onresult = ev => {
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) {
+        const line = ev.results[i][0].transcript.trim();
+        if (line) { buffer.push(line); lastline.textContent = line; }
+      }
+    }
+  };
+  rec.onend = () => {
+    // Chrome halts recognition periodically — restart while recording
+    if (recording) { try { rec.start(); } catch (e) { setTimeout(() => { if (recording) startRecognition(); }, 300); } }
+  };
+  rec.onerror = () => {}; // onend fires after; restart loop handles it
+  try { rec.start(); } catch (e) {}
+}
+
+function setRecording(on) {
+  recording = on;
+  btn.classList.toggle('recording', on);
+  btn.textContent = on ? 'Listening…' : 'Hold to listen';
+  if (on) {
+    startRecognition();
+    batchTimer = setInterval(ship, BATCH_MS);
+  } else {
+    clearInterval(batchTimer);
+    if (rec) { try { rec.stop(); } catch (e) {} rec = null; }
+    ship(); // flush on stop
+  }
+}
+
+// --- long-press (600ms) toggles; short tap just hints ---
+const HOLD_MS = 600;
+let holdTimer = null;
+let fired = false;
+
+function pressStart() {
+  fired = false;
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(() => { fired = true; setRecording(!recording); }, HOLD_MS);
+}
+function pressEnd() {
+  clearTimeout(holdTimer);
+  if (!fired) showHint();
+}
+btn.addEventListener('pointerdown', e => { e.preventDefault(); pressStart(); });
+btn.addEventListener('pointerup', pressEnd);
+btn.addEventListener('pointercancel', pressEnd);
+btn.addEventListener('pointerleave', () => clearTimeout(holdTimer));
+btn.addEventListener('contextmenu', e => e.preventDefault());
+
+// keyboard fallback: hold Space
+let spaceDown = false;
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !spaceDown) { spaceDown = true; e.preventDefault(); pressStart(); }
+});
+document.addEventListener('keyup', e => {
+  if (e.code === 'Space') { spaceDown = false; e.preventDefault(); pressEnd(); }
+});
+
+// --- unsupported (iOS Safari): text fallback ---
+if (!SR) {
+  btn.style.display = 'none';
+  hint.style.display = 'none';
+  document.getElementById('fallback').style.display = 'block';
+  const ftext = document.getElementById('ftext');
+  const send = () => {
+    const v = ftext.value.trim();
+    if (!v) return;
+    buffer.push(v);
+    lastline.textContent = v;
+    ftext.value = '';
+    ship();
+  };
+  document.getElementById('fsend').addEventListener('click', send);
+  ftext.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+}
+</script>
+</body>
+</html>
