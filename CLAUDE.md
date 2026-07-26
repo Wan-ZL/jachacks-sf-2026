@@ -28,13 +28,16 @@ over memory or general docs; only its patterns are confirmed to run on this mach
 
 ## Architecture (why it's shaped this way)
 
-- **All domain logic lives in Jac** (`backend/*.jac`): typed nodes/edges + four named walkers
-  (ingest / recall / drift / handoff-report). Hackathon rule: ≥40% of repo code must be Jac —
-  keep the frontend lean vanilla JS, put logic in walkers.
+- **All domain logic lives in Jac** (root `*.jac`): typed nodes/edges + five named walkers
+  (ingest / recall / drift / critique / handoff-report). Hackathon rule: ≥40% of repo code must
+  be Jac — keep the frontend lean vanilla JS, put logic in walkers.
 - **All walkers must be declared in the served module (`main.jac`)**: walkers brought in via
   `include` lose their `:pub` access tag under `jac start` and return 401 (verified empirically).
   Type/def includes (`schema.jac`, `llm.jac`) are unaffected.
-- **LLM only at the boundary** (`backend/llm.jac`): typed `by llm()` functions for extract-in /
+- **byLLM loading is runtime-adaptive** (`llm_backend.py`): jachammer's hosted runtime bundles
+  byLLM in jaclang core (`jaclang.byllm.lib`) and cannot parse the legacy pip byllm package;
+  local dev uses pip `byllm.lib`. Never add pip byllm to jac.toml dependencies.
+- **LLM only at the boundary** (`llm.jac`): typed `by llm()` functions for extract-in /
   phrase-out. Core reasoning (decline detection, recall) is deterministic graph traversal so every
   alert/answer can cite its graph path. If byLLM runtime breaks, swap to a direct Anthropic API
   call **inside llm.jac only** — signatures stay stable.
@@ -54,3 +57,8 @@ over memory or general docs; only its patterns are confirmed to run on this mach
 - Deploy target: jachammer.ai (see `docs/recon/jachammer.md`); local run is the fallback.
 - Do not add: camera/photo capture, native app, auth/multi-tenant, doctor data-entry. These are
   explicitly out of scope (roadmap-only) per team decision.
+- **AI-to-AI review channel**: `docs/DECISIONS.md` is the decision log between this repo's builder
+  agent and the teammate's reviewer agent — record every accepted/rejected suggestion there with
+  commit hashes. Platform-AI (JacCoder) commits are reviewed before acceptance: targeted build/dep
+  fixes OK; restructuring main.jac, converting to a client codespace, or touching seed data /
+  walker logic requires discussion first.
