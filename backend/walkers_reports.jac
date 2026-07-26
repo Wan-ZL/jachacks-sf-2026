@@ -27,8 +27,8 @@ walker:pub drift_scan {
         now_start = now_dt - timedelta(days=2);
         base_start = now_dt - timedelta(days=7);
 
-        now_counts = {};
-        base_counts = {};
+        now_counts: dict[str, int] = {};
+        base_counts: dict[str, int] = {};
         for s in signals {
             ts_dt = datetime.fromisoformat(s.ts);
             if ts_dt > now_start {
@@ -209,7 +209,7 @@ walker:pub doctor_report {
         signals = [here ->:has_signal:->[?:Signal]];
 
         # per-day buckets; dashboard/doctor chart treats each as one trend bucket
-        buckets = {};
+        buckets: dict[str, dict[str, int]] = {};
         for s in signals {
             day = s.ts[:10];
             if day not in buckets {
@@ -235,9 +235,10 @@ walker:pub doctor_report {
             trend = ", ".join([f"{w['week']}: {w['repeat_q']} repeated questions / {w['confusions']} confusions" for w in weekly]);
             items.append(f"Signal trend by day — {trend}");
         }
-        confs = [e.confidence for e in [edge here ->:remembers:->]];
+        confs: list[float] = [e.confidence for e in [edge here ->:remembers:->]];
         if confs {
-            items.append(f"Average memory-link confidence: {round(sum(confs) / len(confs), 2)} across {len(confs)} remembered people/facts/events");
+            avg = sum(confs) / len(confs);
+            items.append(f"Average memory-link confidence: {avg:.2f} across {len(confs)} remembered people/facts/events");
         }
         for ev in [here ->:remembers:->[?:Event]] {
             items.append(f"Key event: {ev.text} ({ev.date})");
