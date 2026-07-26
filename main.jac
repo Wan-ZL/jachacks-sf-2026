@@ -4,6 +4,7 @@
 # Serve from repo root: jac start main.jac --no_client -p 8000 (static frontend in assets/)
 
 import static_patch;  # fills jaclang 0.16.7 send_static_file gap (see file header)
+import seed_corpus;  # demo corpus compiled into code — deploy packaging drops loose data files
 
 include schema;
 include llm;
@@ -285,6 +286,31 @@ walker:pub graph_snapshot {
     }
 }
 
+# Full-content feed for the tiered-column UI: raw entries + all reports with
+# complete text (graph_snapshot labels are truncated to 40 chars by design).
+walker:pub timeline {
+    has reports: list[dict] = [];
+
+    can go with Root entry {
+        visit [-->[?:Patient]] else {
+            report {"entries": [], "reports": [], "patient": ""};
+        }
+    }
+
+    can collect with Patient entry {
+        entries = [];
+        for e in [here ->:has_entry:->[?:Entry]] {
+            entries.append({"id": jid(e), "ts": e.ts, "source": e.source, "text": e.text});
+        }
+        reps = [];
+        for r in [here ->:has_report:->[?:Report]] {
+            reps.append({"id": jid(r), "kind": r.kind, "status": r.status, "ts": r.ts, "content": r.content});
+        }
+        report {"entries": entries, "reports": reps, "patient": here.name};
+    }
+}
+
+
 def seed_path() -> str {
     # Absolute path first: the hosted sandbox's cwd is NOT the project root.
     candidates = [
@@ -314,11 +340,14 @@ walker:pub seed_load {
         for n in [here -->] {
             del n;
         }
-        try {
-            data = json.loads(open(seed_path()).read());
-        } except Exception as e {
-            report {"loaded": 0, "error": f"seed file unreadable: {e} (cwd={os.getcwd()})"};
-            disengage;
+        data = seed_corpus.get_data();
+        sp = seed_path();
+        if os.path.exists(sp) {
+            try {
+                data = json.loads(open(sp).read());
+            } except Exception {
+                data = seed_corpus.get_data();
+            }
         }
         here.name = str(data.get("patient", here.name));
         count = 0;
@@ -676,7 +705,7 @@ walker:pub doctor_report {
 # new runtime gateway's serve_project_static both resolve assets/<file>).
 cl {
     def:pub app() -> JsxElement {
-        window.location.replace("/static/dashboard.html");
+        window.location.replace("/static/home.html");
         return <div style={{"fontFamily": "sans-serif", "padding": "2rem", "color": "#555"}}>Loading CareGraph…</div>;
     }
 }
