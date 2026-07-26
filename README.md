@@ -65,24 +65,24 @@ below are what you `grep` for in `main.jac` and what the REST routes are named.
 | `ask` | RecallWalker | **Deterministic** keyword walk over the memory graph; returns the answer *plus its graph path and source entries* | [181](main.jac#L181) |
 | `graph_snapshot` | — | Nodes + links for the D3 view (same native ids the walkers emit, so spotlight replay lines up) | [238](main.jac#L238) |
 | `seed_load` | — | Wipe and load the simulated corpus | [297](main.jac#L297) |
-| `drift_scan` | DriftWalker | Decline detection: window comparison + confidence decay | [424](main.jac#L424) |
-| **`critique_alerts`** | **CritiqueWalker** | **Adversarial second pass** — an alert keeps its severity only if its signals span ≥2 distinct days **and** ≥2 distinct evidence entries; a spike packed into one afternoon is downgraded, with graph evidence attached | [445](main.jac#L445) |
-| `daily_report` | — | Auto-written, auto-filed | [490](main.jac#L490) |
-| `handoff_draft` | HandoffWalker | Everything since the last confirmed handoff, drafted | [520](main.jac#L520) |
-| `handoff_confirm` | — | The one human step: the caregiver approves | [570](main.jac#L570) |
-| `doctor_report` | — | Clinical timeline + trend buckets | [595](main.jac#L595) |
+| `drift_scan` | DriftWalker | Decline detection: window comparison + confidence decay | [431](main.jac#L431) |
+| **`critique_alerts`** | **CritiqueWalker** | **Adversarial second pass** — an alert keeps its severity only if its signals span ≥2 distinct days **and** ≥2 distinct evidence entries; a spike packed into one afternoon is downgraded, with graph evidence attached | [452](main.jac#L452) |
+| `daily_report` | — | Auto-written, auto-filed | [497](main.jac#L497) |
+| `handoff_draft` | HandoffWalker | Everything since the last confirmed handoff, drafted | [527](main.jac#L527) |
+| `handoff_confirm` | — | The one human step: the caregiver approves | [577](main.jac#L577) |
+| `doctor_report` | — | Clinical timeline + trend buckets | [602](main.jac#L602) |
 
 ### The line we hold: the LLM never makes the medical judgement
 
 Decline detection is arithmetic on the graph — count signals in a recent window, compare with the
 baseline window, decay confidence on links that have not been refreshed
-([`main.jac:352-421`](main.jac#L352)). It is deterministic, reproducible, and can name the exact
+([`main.jac:352-428`](main.jac#L352)). It is deterministic, reproducible, and can name the exact
 signals and entries behind every alert.
 
 byLLM is used at exactly two boundaries: **text in** (transcript → typed `ExtractResult`) and
 **words out** (facts → a warm sentence, items → a plain-language report). It labels; the graph
 decides. `CAREGRAPH_MOCK_LLM=1` runs the whole product with zero API calls
-([`llm.jac:70-101`](llm.jac)) — the demo path never depends on a network.
+([`llm.jac:70-102`](llm.jac#L70)) — the demo path never depends on a network.
 
 That is also the answer to *"what if the AI is wrong about my mother?"* — **we do not diagnose.**
 We make what the caregiver already observed countable, and every alert opens to show which
