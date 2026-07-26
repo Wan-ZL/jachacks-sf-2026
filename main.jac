@@ -50,6 +50,23 @@ def source_conf(source: str) -> float {
     return 0.9 if source == "L2_caregiver" else 0.7;
 }
 
+# Plain-English labels — every string that reaches a caregiver's eyes goes
+# through these (demo audience includes non-native speakers; no snake_case).
+def kind_label(kind: str) -> str {
+    labels = {
+        "repeat_question": "Repeated question",
+        "name_confusion": "Mixed up a name",
+        "disorientation": "Got disoriented",
+        "positive_recall": "A bright moment",
+        "social_moment": "Good social time"
+    };
+    return labels.get(kind, kind.replace("_", " "));
+}
+
+def source_label(source: str) -> str {
+    return "Caregiver note" if source == "L2_caregiver" else "Heard";
+}
+
 # Connect operators (++> / +>:E():+>) return a LIST on jaclang 0.16.x but the
 # connected NODE itself on the hosted v0.34 runtime — normalize here.
 # (Found the hard way: 'Patient' object is not subscriptable, hosted-only.)
@@ -475,9 +492,9 @@ def drift_alerts(patient: Patient) -> list[dict] {
                     # rates, not raw counts — unequal windows (2d vs 5d) make
                     # "19 vs 15" read flat when the real jump is 3.2x
                     if b == 0 {
-                        trend = f"{kind}: {now_rate:.1f}/day — new this week";
+                        trend = f"{kind_label(kind)}: {now_rate:.1f}/day — new this week";
                     } else {
-                        trend = f"{kind}: {now_rate:.1f}/day now vs {base_rate:.1f}/day baseline ({now_rate / max(base_rate, 0.1):.1f}x)";
+                        trend = f"{kind_label(kind)}: {now_rate:.1f} a day now, was {base_rate:.1f} a day ({now_rate / max(base_rate, 0.1):.1f}x more)";
                     }
                     alerts.append({
                         "kind": kind,
@@ -592,12 +609,12 @@ walker:pub daily_report {
         items = [];
         for en in [here ->:has_entry:->[?:Entry]] {
             if en.ts.startswith(self.date) {
-                items.append(f"[{en.source}] {en.text}");
+                items.append(f"{source_label(en.source)} — {en.text}");
             }
         }
         for s in [here ->:has_signal:->[?:Signal]] {
             if s.ts.startswith(self.date) {
-                items.append(f"[signal:{s.kind}] {s.detail}");
+                items.append(f"{kind_label(s.kind)} — {s.detail}");
             }
         }
         content = draft_report("daily", items) if items else "No entries recorded for this date.";
@@ -638,12 +655,12 @@ walker:pub handoff_draft {
         pending = [];  # (ts, id, text) so one sort orders items chronologically
         for en in entries {
             if en.ts > cutoff {
-                pending.append((en.ts, jid(en), f"[{en.source}] {en.text}"));
+                pending.append((en.ts, jid(en), f"{source_label(en.source)} — {en.text}"));
             }
         }
         for s in signals {
             if s.ts > cutoff {
-                pending.append((s.ts, jid(s), f"[signal:{s.kind}] {s.detail}"));
+                pending.append((s.ts, jid(s), f"{kind_label(s.kind)} — {s.detail}"));
             }
         }
         pending.sort();
@@ -732,9 +749,9 @@ walker:pub doctor_report {
         }
         for s in signals {
             if s.kind == "positive_recall" {
-                items.append(f"Positive moment: {s.detail}");
+                items.append(f"A bright moment: {s.detail}");
             } elif s.kind == "name_confusion" {
-                items.append(f"Observed confusion: {s.detail}");
+                items.append(f"Confusion seen: {s.detail}");
             }
         }
 

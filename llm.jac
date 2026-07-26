@@ -58,12 +58,12 @@ sem _llm_extract.batch_text = "Raw transcribed conversation text, possibly sever
 sem _llm_extract.today = "Today's date in ISO-8601, for resolving relative dates like 'Sunday' or 'tomorrow'.";
 
 def _llm_phrase_answer(question: str, facts: list[str]) -> str by llm();
-sem _llm_phrase_answer = "Answer the caregiver's question in a warm, reassuring tone, 1-2 sentences, using ONLY the facts provided. If the facts don't answer it, say so gently. Never invent information.";
+sem _llm_phrase_answer = "Answer the caregiver's question warmly in ONE short, very simple sentence a 10-year-old could read at a glance. Everyday words only — no medical or technical terms. Use ONLY the facts provided; if they don't answer it, say so gently. Never invent information.";
 sem _llm_phrase_answer.question = "The caregiver's question about the patient.";
 sem _llm_phrase_answer.facts = "The only facts you may use in the answer.";
 
 def _llm_draft_report(kind: str, items: list[str]) -> str by llm();
-sem _llm_draft_report = "Draft a plain-language markdown report from the given items: first line is a one-line overall status, then at most 10 bullets. No jargon, no invention beyond the items.";
+sem _llm_draft_report = "Write a very simple report from the given items for a family with no medical background: first line = one short plain sentence on how the day went; then at most 8 short bullets, each under 12 words, everyday language a child could read. No jargon, no abbreviations, no underscores, nothing beyond the items.";
 sem _llm_draft_report.kind = "Report kind: daily | handoff | doctor.";
 sem _llm_draft_report.items = "The observations/items to summarize into the report.";
 

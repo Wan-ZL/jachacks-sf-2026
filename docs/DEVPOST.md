@@ -1,13 +1,13 @@
 # Devpost submission copy — paste into jachacks-sf.devpost.com
 
 **Track**: Social Impact. **Special awards**: Best Use of Jac (+ Best JacHammer rides on it per rubric).
-**Video**: [ADD LINK — ≤90s]. **Deployed**: [ADD sandbox/production URL] (open `/static/home.html`).
+**Video**: [ADD LINK — ≤90s]. **Deployed**: [ADD sandbox/production URL] (open `/static/home.html` — two ends: wearable + console).
 
 ---
 
 ## Project name
 
-CareGraph — see what she still remembers
+Memory Book — see what she still remembers
 
 ## Elevator pitch (one-liner)
 
@@ -38,9 +38,9 @@ Three ends, one graph, escalating data tiers:
   every surviving alert carries its own proof; **HandoffWalker** drafts the shift
   report and the caregiver only reviews and confirms. A flat control signal
   (social_moment) stays quiet — she isn't "just chattier this week."
-- **L3 — Doctor report** (`/static/doctor.html`): one click before an appointment
-  produces a clinical timeline: per-day signal trends, memory-confidence decay,
-  key events. Print-ready.
+- **L3 — Doctor reports** (Doctor column in the console): one click before an
+  appointment produces a clinical timeline card — per-day signal trends,
+  memory-confidence decay, key events. Opens full-screen; printable from there.
 
 Ask anything — "Does she remember Emma is visiting?" — and **RecallWalker** answers
 by deterministic graph traversal with a spotlight replay of the exact path it
@@ -107,8 +107,8 @@ diagnosis.
 2. (2m) LIVE: long-press the wearable → say "Emma is coming on Sunday afternoon" →
    graph grows on the big screen → Ask "Does she remember Emma is visiting?" →
    spotlight traversal + evidence → Alerts strip: 3.2× repeat-question, ✓
-   CritiqueWalker verified · social control flat → Draft handoff → confirm 2 items
-   → doctor print view.
+   CritiqueWalker verified · social control flat → Draft handoff → review & confirm in the overlay
+   → doctor report card → print.
 3. (60s) WHERE JAC RUNS: open main.jac on screen — 11 walkers, typed edges with
    decaying confidence; point at the footer walker roster and the ✓ CritiqueWalker
    badge; "the graph is the database — no ORM, no SQL, walkers are the API."

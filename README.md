@@ -1,4 +1,4 @@
-# CareGraph
+# Memory Book
 
 **See what she still remembers — and know the moment it starts to fade.**
 
@@ -14,7 +14,7 @@ Linda cares for her mother, Margaret. Every doctor's appointment opens with the 
 tally on a notepad of how many times a day her mother asks what day it is, because there is
 nowhere else to put it.
 
-CareGraph is that notepad, turned into a graph that can be traversed, measured, and handed to a
+Memory Book is that notepad, turned into a graph that can be traversed, measured, and handed to a
 doctor.
 
 ## What it does
@@ -40,7 +40,7 @@ data quality is part of the graph model rather than a footnote.
 render what walkers return. There is no ORM, no database code, no API routing layer, and no
 server framework in this repo — Jac provides all four.
 
-| Jac capability | How CareGraph depends on it | Code |
+| Jac capability | How Memory Book depends on it | Code |
 |---|---|---|
 | Typed node/edge graph | The memory graph **is** the domain model: 7 node types, 5 edge types | [`schema.jac:3-52`](schema.jac) |
 | Named walkers as agents | **11 walkers**, each with one job (list below) | [`main.jac`](main.jac) |
