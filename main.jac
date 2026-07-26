@@ -49,6 +49,13 @@ def source_conf(source: str) -> float {
     return 0.9 if source == "L2_caregiver" else 0.7;
 }
 
+# Connect operators (++> / +>:E():+>) return a LIST on jaclang 0.16.x but the
+# connected NODE itself on the hosted v0.34 runtime — normalize here.
+# (Found the hard way: 'Patient' object is not subscriptable, hosted-only.)
+def first_node(x: any) -> any {
+    return x[0] if isinstance(x, list) else x;
+}
+
 def find_person(patient: Patient, name: str) -> Person | None {
     for n in [patient ->:remembers:->[?:Person]] {
         if n.name.lower() == name.lower() {
@@ -101,8 +108,8 @@ def apply_extract(patient: Patient, entry_node: Entry, res: ExtractResult,
     for p in res.persons {
         person = find_person(patient, p.name);
         if person is None {
-            person = (patient +>:remembers(confidence=conf, updated=ts):+>
-                      Person(name=p.name, relation=p.relation))[0] as Person;
+            person = first_node(patient +>:remembers(confidence=conf, updated=ts):+>
+                      Person(name=p.name, relation=p.relation)) as Person;
             created.append(jid(person));
         } else {
             ensure_remembers(patient, person, conf, ts);
@@ -113,8 +120,8 @@ def apply_extract(patient: Patient, entry_node: Entry, res: ExtractResult,
     for f in res.facts {
         fact = find_fact(patient, f.text);
         if fact is None {
-            fact = (patient +>:remembers(confidence=conf, updated=ts):+>
-                    Fact(text=f.text, category=f.category))[0] as Fact;
+            fact = first_node(patient +>:remembers(confidence=conf, updated=ts):+>
+                    Fact(text=f.text, category=f.category)) as Fact;
             created.append(jid(fact));
         } else {
             ensure_remembers(patient, fact, conf, ts);
@@ -125,8 +132,8 @@ def apply_extract(patient: Patient, entry_node: Entry, res: ExtractResult,
     for ev in res.events {
         event = find_event(patient, ev.text);
         if event is None {
-            event = (patient +>:remembers(confidence=conf, updated=ts):+>
-                     Event(text=ev.text, date=ev.date))[0] as Event;
+            event = first_node(patient +>:remembers(confidence=conf, updated=ts):+>
+                     Event(text=ev.text, date=ev.date)) as Event;
             created.append(jid(event));
         } else {
             ensure_remembers(patient, event, conf, ts);
@@ -136,7 +143,7 @@ def apply_extract(patient: Patient, entry_node: Entry, res: ExtractResult,
     }
     for s in res.signals {
         # Signals are point-in-time observations — never merged, always new.
-        sig = (patient +>:has_signal():+> Signal(kind=s.kind, detail=s.detail, ts=ts))[0] as Signal;
+        sig = first_node(patient +>:has_signal():+> Signal(kind=s.kind, detail=s.detail, ts=ts)) as Signal;
         entry_node +>:mentioned():+> sig;
         created.append(jid(sig));
         trace.append(jid(sig));
@@ -152,7 +159,7 @@ walker:pub init_patient {
         if existing {
             report {"patient_id": jid(existing[0])};
         } else {
-            patient = (here ++> Patient(name=self.name))[0] as Patient;
+            patient = first_node(here ++> Patient(name=self.name)) as Patient;
             report {"patient_id": jid(patient)};
         }
     }
@@ -169,8 +176,8 @@ walker:pub ingest_batch {
     }
 
     can process with Patient entry {
-        entry_node = (here +>:has_entry():+>
-                      Entry(text=self.text, source=self.source, ts=self.ts))[0] as Entry;
+        entry_node = first_node(here +>:has_entry():+>
+                      Entry(text=self.text, source=self.source, ts=self.ts)) as Entry;
         created: list[str] = [jid(entry_node)];
         trace: list[str] = [jid(entry_node)];
         res = extract(self.text, self.ts[:10]);
@@ -356,7 +363,7 @@ walker:pub seed_load {
     can go with Root entry {
         try {
             visit [-->[?:Patient]] else {
-                patient = (here ++> Patient(name="Margaret"))[0] as Patient;
+                patient = first_node(here ++> Patient(name="Margaret")) as Patient;
                 visit patient;
             }
         } except Exception as exc {
@@ -388,8 +395,8 @@ walker:pub seed_load {
         for e in data["entries"] {
             ts = str(e["ts"]);
             src = str(e["source"]);
-            entry_node = (here +>:has_entry():+>
-                          Entry(text=str(e["text"]), source=src, ts=ts))[0] as Entry;
+            entry_node = first_node(here +>:has_entry():+>
+                          Entry(text=str(e["text"]), source=src, ts=ts)) as Entry;
             ex = e["extracted"];
             res = ExtractResult(
                 persons=[ExtractedPerson(name=str(p["name"]), relation=str(p["relation"]))
