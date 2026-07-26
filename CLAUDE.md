@@ -29,6 +29,9 @@ over memory or general docs; only its patterns are confirmed to run on this mach
 - **All domain logic lives in Jac** (`backend/*.jac`): typed nodes/edges + four named walkers
   (ingest / recall / drift / handoff-report). Hackathon rule: ≥40% of repo code must be Jac —
   keep the frontend lean vanilla JS, put logic in walkers.
+- **All walkers must be declared in the served module (`main.jac`)**: walkers brought in via
+  `include` lose their `:pub` access tag under `jac start` and return 401 (verified empirically).
+  Type/def includes (`schema.jac`, `llm.jac`) are unaffected.
 - **LLM only at the boundary** (`backend/llm.jac`): typed `by llm()` functions for extract-in /
   phrase-out. Core reasoning (decline detection, recall) is deterministic graph traversal so every
   alert/answer can cite its graph path. If byLLM runtime breaks, swap to a direct Anthropic API

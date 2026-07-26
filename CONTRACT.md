@@ -12,10 +12,13 @@ reports → humans only confirm. Three layers: L1 patient wearable / L2 caregive
 ## Repo layout
 ```
 backend/
-  main.jac          # graph schema + all walkers + REST entry (may import the others)
+  main.jac          # ALL 10 walkers live HERE (served module). GOTCHA (verified): walkers
+                    # pulled in via `include` lose their :pub tag under `jac start` and 401.
+                    # Only type/def includes (schema, llm) survive include.
+  schema.jac        # node/edge types (include'd by main.jac — types are safe to include)
   llm.jac           # byLLM Model config + typed extraction/drafting functions + obj types
-  seed.jac          # seed loader walker (reads seed_data.json)
-  seed_data.json    # 7-day simulated corpus (see SEED DATA)
+  jac.toml          # required by `jac start` in this cwd
+  seed_data.json    # 7-day simulated corpus (see SEED DATA); loaded by seed_load walker
 frontend/
   dashboard.html    # caregiver console: D3 graph + spotlight replay + trends + alerts + handoff review
   patient.html      # wearable page: long-press record, Web Speech API, batch POST
