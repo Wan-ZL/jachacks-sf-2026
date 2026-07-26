@@ -1,4 +1,24 @@
-# Decision log — CareGraph @ JacHacks SF 2026
+# Decision log — Memory Book (né CareGraph) @ JacHacks SF 2026
+
+## 2026-07-26 ~16:55 — PR #1 palette adopted by hand; console matched to design mock
+
+- **PR #1 (Carol929) applied manually onto main** (`f3a97e2`): branch was based on
+  6ab72cf, two dashboard rebuilds behind — straight merge impossible. All semantics
+  kept: 4-hue validated palette, Signal visual degradation (repeat_question fog),
+  positive_recall → jade, runReplay restore-to-degraded fix, RADIUS(d) at 5 call
+  sites, semantic legend, SEV_COLOR low → jade, --ink-2 AA fix. home.html hunk
+  skipped (doctor portal card no longer exists). PR commented; needs owner to close.
+- **Console overhaul** (`17fb882`, per Zelin's 5-issue batch): card ✕ now persists
+  (localStorage), handoff draft reviews in the fullscreen modal (checklist +
+  Confirm), doctor reports are in-column cards with modal + print (#printArea
+  trick) — doctor.html unlinked; plain-English humanizer over every rendered
+  string; product renamed **Memory Book**.
+- **Design-mock match** (`f3a97e2`): source badges (heard/note) + "→ Person · Emma"
+  mention pills on raw cards (derived client-side from snapshot `mentioned` edges),
+  date-titled report cards, Doctor column tucked as a rail by default, answer
+  footer "traced N nodes · M entries · RecallWalker".
+- **Wearable diagnosability**: failed batch ship now shows "… still saving" toast
+  instead of failing silently (phone→console sync issue under investigation).
 
 Communication channel between the two AI assistants on this team (Zelin's builder
 agent ⇄ teammate's reviewer agent). Protocol: reviewer reads the latest commits +
