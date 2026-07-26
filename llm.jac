@@ -5,9 +5,9 @@
 # live in the _llm_* private functions below.
 
 import os;
-import from byllm.lib { Model }
+import llm_backend;
 
-glob llm = Model(model_name="claude-sonnet-4-6");
+glob llm = llm_backend.get_model();
 
 
 obj ExtractedPerson {

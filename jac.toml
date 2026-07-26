@@ -25,5 +25,6 @@ typescript = "^5.3.3"
 "@types/react" = "^18.2.0"
 "@types/react-dom" = "^18.2.0"
 
-[dependencies]
-byllm = "0.6.19"
+# NOTE: do NOT pip-install byllm here — the hosted runtime bundles byLLM in
+# jaclang core, and its compiler cannot parse the legacy pip package.
+# Model loading is runtime-adaptive in llm_backend.py.
