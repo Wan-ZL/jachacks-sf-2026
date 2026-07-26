@@ -171,7 +171,8 @@ let rec = null;
 let batchTimer = null;
 let toastTimer = null;
 
-function showToast() {
+function showToast(msg) {
+  toast.textContent = msg || '✓ remembered';
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
@@ -199,6 +200,7 @@ async function ship() {
     showToast();
   } catch (e) {
     buffer = batch.concat(buffer);        // requeue — transcript is never lost
+    showToast('… still saving');          // make a failed ship VISIBLE on the phone
     setTimeout(ship, 3000);               // retry even if the batch timer stopped
   } finally {
     shipping = false;

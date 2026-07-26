@@ -213,6 +213,12 @@
   }
   .muted { color: #a3937d; font-size: 13px; }
   .ok { color: #6f9e5f; font-weight: 700; }
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+  .tag {
+    font-size: 10.5px; font-weight: 600; background: #f1e9da; color: #6b5c48;
+    padding: 1px 8px; border-radius: 999px; white-space: nowrap;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  }
 
   /* ---------- modal ---------- */
   #modalOverlay {
@@ -494,12 +500,42 @@ function saveDismissed() {
 }
 
 /* ---------- D3 graph ---------- */
-const COLORS = { Patient: '#f4b400', Person: '#4285f4', Fact: '#34a853', Event: '#9c6ade',
-                 Signal: '#ea4335', Entry: '#9aa0b4', Report: '#ff8f00' };
-const RADIUS = t => t === 'Patient' ? 22 : t === 'Entry' ? 5 : 10;
+// Morning Light data palette (PR #1). Validated (OKLab dE + CVD sim + WCAG)
+// against the cream surface. Semantics: red = trouble, jade = intact,
+// blue = people, gold = her. Entry/Report are deliberately neutral.
+const COLORS = { Patient: '#A87A10', Person: '#2A6FA8', Fact: '#2FA37A', Event: '#2FA37A',
+                 Signal: '#C0392B', Entry: '#746D69', Report: '#746D69' };
 
-document.getElementById('legend').innerHTML = Object.entries(COLORS)
-  .map(([t, c]) => `<span class="lg"><i style="background:${c}"></i>${t}</span>`).join('');
+// Positive signals must not wear the alarm red — positive_recall is the one
+// node proving this isn't a doom meter. Reuses the jade, no new hue.
+const SIGNAL_COLOR = { positive_recall: '#2FA37A', social_moment: '#2FA37A' };
+const nodeColor = d =>
+  (d.type === 'Signal' && SIGNAL_COLOR[d.kind]) || COLORS[d.type] || '#746D69';
+
+// Most Signals are repeat_question; rendered full-size they drown the graph.
+// Only the signals worth looking at individually stay loud; the repeats
+// recede into a faint ring — which reads as "she is stuck on the same
+// question" without hiding the genuinely new events.
+const LOUD_KINDS = new Set(['name_confusion', 'disorientation', 'positive_recall']);
+const isLoud = d => d.type !== 'Signal' || LOUD_KINDS.has(d.kind);
+
+const RADIUS = d => {
+  if (d.type === 'Patient') return 22;
+  if (d.type === 'Entry')   return 3;
+  if (d.type === 'Report')  return 8;
+  if (d.type === 'Signal')  return isLoud(d) ? 13 : 4;
+  return 10;
+};
+const NODE_OPACITY = d =>
+  d.type === 'Entry' ? 0.22 :
+  (d.type === 'Signal' && !isLoud(d)) ? 0.32 : 1;
+const SHOW_LABEL = d => !(d.type === 'Entry' || (d.type === 'Signal' && !isLoud(d)));
+
+// Legend follows the semantics, not the seven raw node types.
+document.getElementById('legend').innerHTML = [
+  ['Margaret', '#A87A10'], ['People', '#2A6FA8'], ['What she knows', '#2FA37A'],
+  ['Warning signs', '#C0392B'], ['Raw records', '#746D69']
+].map(([t, c]) => `<span class="lg"><i style="background:${c}"></i>${t}</span>`).join('');
 
 const svg = d3.select('#graph');
 const zoomG = svg.append('g');
@@ -512,7 +548,7 @@ let W = pane.clientWidth || 800, H = pane.clientHeight || 600;
 const sim = d3.forceSimulation()
   .force('charge', d3.forceManyBody().strength(-180))
   .force('link', d3.forceLink().id(d => d.id).distance(70))
-  .force('collide', d3.forceCollide().radius(d => RADIUS(d.type) + 6))
+  .force('collide', d3.forceCollide().radius(d => RADIUS(d) + 6))
   .force('center', d3.forceCenter(W / 2, H / 2))
   .on('tick', () => {
     gLink.selectAll('line')
@@ -565,20 +601,25 @@ function updateGraph(data) {
     .join(enter => {
       const g = enter.append('g').attr('class', 'node').style('cursor', 'pointer').call(drag());
       g.append('circle')
-        .attr('r', d => RADIUS(d.type))
-        .attr('fill', d => COLORS[d.type] || '#9aa0b4')
-        .attr('stroke', '#fff').attr('stroke-width', 1.5);
+        .attr('r', RADIUS)
+        .attr('fill', nodeColor)
+        .attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
       g.append('text')
-        .attr('dy', d => RADIUS(d.type) + 12).attr('text-anchor', 'middle')
-        .attr('font-size', 10).attr('fill', '#5b6472')
+        .attr('dy', d => RADIUS(d) + 12).attr('text-anchor', 'middle')
+        .attr('font-size', 10).attr('fill', '#7A6A5C')
         .style('pointer-events', 'none');
       g.append('title');
       return g;
     });
-  nodeSel.select('text').text(d => {
-    const l = d.label || d.name || '';
-    return l.length > 18 ? l.slice(0, 17) + '…' : l;
-  });
+  nodeSel.attr('opacity', NODE_OPACITY);
+  nodeSel.select('circle').attr('r', RADIUS).attr('fill', nodeColor);
+  nodeSel.select('text')
+    .attr('display', d => SHOW_LABEL(d) ? null : 'none')
+    .attr('dy', d => RADIUS(d) + 12)
+    .text(d => {
+      const l = d.label || d.name || '';
+      return l.length > 18 ? l.slice(0, 17) + '…' : l;
+    });
   nodeSel.select('title').text(d => (d.type || '') + ': ' + (d.label || ''));
 
   const changed = fresh.length > 0 ||
@@ -602,10 +643,10 @@ function flashNode(id) {
   const sel = gNode.selectAll('g.node').filter(d => d.id === id).select('circle');
   if (sel.empty()) return;
   const r0 = +sel.attr('r');
-  sel.transition().duration(350).attr('r', r0 * 2.2).attr('stroke', '#f4b400').attr('stroke-width', 4)
+  sel.transition().duration(350).attr('r', r0 * 2.2).attr('stroke', '#dd8a4e').attr('stroke-width', 4)
      .transition().duration(350).attr('r', r0)
      .transition().duration(350).attr('r', r0 * 1.8)
-     .transition().duration(400).attr('r', r0).attr('stroke', '#fff').attr('stroke-width', 1.5);
+     .transition().duration(400).attr('r', r0).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
 }
 
 async function pollGraph() {
@@ -629,7 +670,7 @@ async function runReplay(path) {
     if (hit.empty()) continue;               // id not in current graph — skip gracefully
     hit.attr('opacity', 1);
     const c = hit.select('circle');
-    const r0 = RADIUS(hit.datum().type);
+    const r0 = RADIUS(hit.datum());
     c.transition().duration(250).attr('r', r0 * 1.9).attr('stroke', '#1a2233').attr('stroke-width', 3);
     if (prev !== null) {
       linkSel.filter(d => {
@@ -641,9 +682,11 @@ async function runReplay(path) {
     await sleep(400);
   }
   await sleep(1400);
-  nodeSel.attr('opacity', 1);
+  // restore the degraded state, not a flat opacity:1 — otherwise every question
+  // permanently un-dims the repeat_question dots and the graph drowns again
+  nodeSel.attr('opacity', NODE_OPACITY);
   nodeSel.select('circle').transition().duration(400)
-    .attr('r', d => RADIUS(d.type)).attr('stroke', '#fff').attr('stroke-width', 1.5);
+    .attr('r', RADIUS).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
   linkSel.attr('stroke', '#b6bdc9').attr('opacity', linkBaseOpacity);
   replaying = false;
 }
@@ -663,8 +706,7 @@ async function doAsk() {
       ? "Nothing in the memory graph matches that. Try naming a person or thing — e.g. 'Does she remember Emma?'"
       : (ans.answer || '(no answer)');
     document.getElementById('answerEvidence').textContent =
-      'RecallWalker · ' + hops + '-node graph traversal · byLLM phrasing · evidence: '
-      + n + ' ' + (n === 1 ? 'entry' : 'entries');
+      'traced ' + hops + ' nodes · ' + n + ' ' + (n === 1 ? 'entry' : 'entries') + ' · RecallWalker';
     if (Array.isArray(ans.path) && ans.path.length) await runReplay(ans.path);
   } catch (e) {
     document.getElementById('answerCard').style.display = 'block';
@@ -686,11 +728,13 @@ document.getElementById('answerClose').addEventListener('click', () => {
 });
 
 /* ---------- Alerts strip ---------- */
+// Status colours are reserved, never reused as categorical hues. `low` covers
+// positive_recall / social_moment, so it must not read as an alarm — jade.
 const SEV_COLOR = s => {
   s = String(s || '').toLowerCase();
-  if (s === 'high' || s === 'critical' || s === 'severe') return '#ea4335';
-  if (s === 'medium' || s === 'moderate' || s === 'warn') return '#f4b400';
-  return '#4285f4';
+  if (s === 'high' || s === 'critical' || s === 'severe') return '#C0392B';
+  if (s === 'medium' || s === 'moderate' || s === 'warn') return '#B4762A';
+  return '#2FA37A';
 };
 async function loadAlerts() {
   const box = document.getElementById('alertsBody');
@@ -733,7 +777,7 @@ function setCount(col, n) {
   document.getElementById('railcnt-' + col).textContent = n;
 }
 
-function tcard(key, mtitle, headHTML, text, md) {
+function tcard(key, mtitle, headHTML, text, md, tagsHTML) {
   text = humanize(text);
   CARD_REG.set(key, { title: mtitle, text: String(text || ''), md: !!md });
   const open = expandedKeys.has(key);
@@ -741,6 +785,7 @@ function tcard(key, mtitle, headHTML, text, md) {
   return `<div class="tcard" data-key="${esc(key)}">
     <div class="thead">${headHTML}<button class="xbtn" title="Hide card">&#10005;</button></div>
     <div class="tbody${open ? '' : (key.startsWith('entry:') ? ' clamp2' : ' clamp3')}">${inner}</div>
+    ${tagsHTML || ''}
   </div>`;
 }
 const statusChip = s => s === 'confirmed'
@@ -749,6 +794,24 @@ const statusChip = s => s === 'confirmed'
 const byTsDesc = (a, b) => String(b.ts || '').localeCompare(String(a.ts || ''));
 
 /* ---------- Column ①: Raw data ---------- */
+// "→ Person · Emma"-style pills under each moment, derived from the graph's
+// `mentioned` edges — no extra backend call, the snapshot already has them.
+function entryTags(id) {
+  if (!latestSnapshot) return '';
+  const labels = [];
+  for (const l of (latestSnapshot.links || [])) {
+    if (l.type !== 'mentioned' || l.source !== id) continue;
+    const n = nodesById.get(l.target);
+    if (!n) continue;
+    if (n.type === 'Person') labels.push('Person · ' + (n.label || ''));
+    else if (n.type === 'Signal') labels.push(kindLabel(n.kind));
+    else if (n.type === 'Fact' || n.type === 'Event') labels.push(n.label || '');
+    if (labels.length >= 3) break;
+  }
+  return labels.length
+    ? '<div class="tags">' + labels.map(t => `<span class="tag">&rarr; ${esc(t)}</span>`).join('') + '</div>'
+    : '';
+}
 let knownEntryIds = null;   // null until first render: seed data never flashes
 function renderRaw() {
   const box = document.getElementById('body-raw');
@@ -768,8 +831,15 @@ function renderRaw() {
     return;
   }
   box.innerHTML = shown.map(en => {
-    const head = `<span class="time">${esc(fmtTs(en.ts))}</span>` + '<span class="spacer"></span>';
-    const card = tcard('entry:' + en.id, 'Entry — ' + fmtTs(en.ts), head, en.text || '', false);
+    const isNote = String(en.source || '') === 'L2_caregiver';
+    const srcChip = isNote
+      ? '<span class="chip green">note</span>'
+      : '<span class="chip amber">heard</span>';
+    const head = srcChip + '<span class="spacer"></span>'
+      + `<span class="time">${esc(fmtTs(en.ts))}</span>`;
+    const text = isNote ? (en.text || '') : '“' + (en.text || '') + '”';
+    const card = tcard('entry:' + en.id, 'Moment — ' + fmtTs(en.ts), head, text, false,
+                       entryTags(en.id));
     return fresh.has(en.id) ? card.replace('class="tcard"', 'class="tcard fresh"') : card;
   }).join('');
 }
@@ -786,8 +856,8 @@ function renderDaily() {
   setCount('daily', reps.length);
   if (!reps.length) { box.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
   box.innerHTML = reps.map(r => {
-    const head = '<span class="rtitle">Daily note</span><span class="spacer"></span>'
-      + `<span class="time">${esc(fmtDay(r.ts))}</span>` + statusChip(r.status);
+    const head = `<span class="rtitle">${esc(fmtDay(r.ts))}</span>` + statusChip(r.status)
+      + '<span class="spacer"></span>';
     return tcard('report:' + r.id, 'Daily note — ' + fmtDay(r.ts), head, r.content || '', true);
   }).join('');
 }
@@ -817,9 +887,9 @@ function draftCardHTML() {
   if (!d || dismissed.has('draft:' + d.report_id)) return '';
   const n = d.items.length;
   return `<div class="tcard" data-review="1" data-key="${esc('draft:' + d.report_id)}">
-    <div class="thead"><span class="chip amber">draft</span><span class="spacer"></span>
-      <button class="xbtn" title="Hide card">&#10005;</button></div>
-    <div class="tbody"><strong>Draft — tap to review</strong> · ${n} item${n === 1 ? '' : 's'}</div>
+    <div class="thead"><span class="rtitle">Draft</span><span class="chip amber">needs review</span>
+      <span class="spacer"></span><button class="xbtn" title="Hide card">&#10005;</button></div>
+    <div class="tbody">${n} item${n === 1 ? '' : 's'} to check — tap to review &amp; confirm</div>
   </div>`;
 }
 function renderHandoff() {
@@ -832,8 +902,8 @@ function renderHandoff() {
   const draftHTML = draftCardHTML();
   setCount('handoff', past.length + (draftHTML ? 1 : 0));
   const pastHTML = past.map(r => {
-    const head = '<span class="rtitle">Handoff</span><span class="spacer"></span>'
-      + `<span class="time">${esc(fmtTs(r.ts))}</span>` + statusChip(r.status);
+    const head = `<span class="rtitle">${esc(fmtTs(r.ts))}</span>` + statusChip(r.status)
+      + '<span class="spacer"></span>';
     return tcard('report:' + r.id, 'Handoff — ' + fmtTs(r.ts), head, r.content || '', true);
   }).join('');
   box.innerHTML = (draftHTML + pastHTML) || '<div class="empty">Nothing here yet — tap “Draft handoff”.</div>';
@@ -1051,12 +1121,13 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOpen)
 const COLS = ['raw', 'daily', 'handoff', 'doctor'];
 function setCollapsed(col, v) {
   document.getElementById('tier-' + col).classList.toggle('collapsed', v);
-  try { localStorage.setItem('cg_collapse_' + col, v ? '1' : ''); } catch (e) {}
+  try { localStorage.setItem('cg_collapse_' + col, v ? '1' : '0'); } catch (e) {}
 }
 COLS.forEach(col => {
-  let saved = '';
-  try { saved = localStorage.getItem('cg_collapse_' + col) || ''; } catch (e) {}
-  if (saved === '1') setCollapsed(col, true);
+  let saved = null;
+  try { saved = localStorage.getItem('cg_collapse_' + col); } catch (e) {}
+  // Doctor starts tucked away (as in the design mock) until opened once.
+  if (saved === '1' || (saved === null && col === 'doctor')) setCollapsed(col, true);
 });
 document.querySelectorAll('.collapse-btn').forEach(b =>
   b.addEventListener('click', e => { e.stopPropagation(); setCollapsed(b.dataset.col, true); }));
