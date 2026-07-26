@@ -342,17 +342,21 @@ const SEV_COLOR = s => {
 async function loadAlerts() {
   const box = document.getElementById('alertsBody');
   try {
-    const r = await callWalker('drift_scan');
+    const r = await callWalker('critique_alerts');
     const alerts = Array.isArray(r?.alerts) ? r.alerts : Array.isArray(r) ? r : [];
     if (!alerts.length) { box.innerHTML = '<span class="muted">No alerts — all steady.</span>'; return; }
     box.innerHTML = alerts.map(a => {
       const counts = (a.base_count != null && a.now_count != null)
         ? `${esc(a.base_count)}/day → ${esc(a.now_count)}/day` : '';
+      const verdict = a.verdict === 'confirmed'
+        ? `<span class="counts" style="color:#34a853">✓ CritiqueWalker · ${a.evidence?.length || 0} evidence</span>`
+        : a.verdict ? `<span class="counts">${esc(a.verdict)}</span>` : '';
       return `<div class="alert">
         <span class="sev" style="background:${SEV_COLOR(a.severity)}"></span>
         <span class="kind">${esc(a.kind || 'alert')}</span>
         <span>${esc(a.detail || '')}</span>
         <span class="counts">${counts}</span>
+        ${verdict}
       </div>`;
     }).join('');
   } catch (e) { box.innerHTML = '<span class="muted">Alerts unavailable.</span>'; }

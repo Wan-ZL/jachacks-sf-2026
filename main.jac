@@ -346,21 +346,14 @@ walker:pub seed_load {
 import from datetime { datetime, timedelta }
 
 
-walker:pub drift_scan {
-    has reports: list[dict] = [];
-
-    can go with Root entry {
-        visit [-->[?:Patient]] else {
-            report {"alerts": []};
-        }
+# Shared drift analysis: window compare + confidence decay. Used by DriftWalker
+# (raw alerts) and CritiqueWalker (verified alerts) without nested walker spawns —
+# a spawned walker's report{} would leak into the outer HTTP response.
+def drift_alerts(patient: Patient) -> list[dict] {
+    signals = [patient ->:has_signal:->[?:Signal]];
+    if not signals {
+        return [];
     }
-
-    can scan with Patient entry {
-        signals = [here ->:has_signal:->[?:Signal]];
-        if not signals {
-            report {"alerts": []};
-            disengage;
-        }
         now_dt = datetime.fromisoformat(max([s.ts for s in signals]));
         now_start = now_dt - timedelta(days=2);
         base_start = now_dt - timedelta(days=7);
@@ -378,7 +371,7 @@ walker:pub drift_scan {
 
         # confidence decay: -0.05 per day since last update, floor 0.1;
         # `updated` is bumped to corpus-now so repeated scans don't compound.
-        for e in [edge here ->:remembers:->] {
+        for e in [edge patient ->:remembers:->] {
             days = (now_dt - datetime.fromisoformat(e.updated)).days;
             if days > 0 {
                 e.confidence = max(0.1, e.confidence - 0.05 * days);
@@ -424,7 +417,72 @@ walker:pub drift_scan {
                 "severity": "low"
             });
         }
-        report {"alerts": alerts};
+        return alerts;
+}
+
+
+walker:pub drift_scan {
+    has reports: list[dict] = [];
+
+    can go with Root entry {
+        visit [-->[?:Patient]] else {
+            report {"alerts": []};
+        }
+    }
+
+    can scan with Patient entry {
+        report {"alerts": drift_alerts(here)};
+    }
+}
+
+
+# CritiqueWalker: adversarial second pass over DriftWalker's alerts (the
+# devil's-advocate pattern). An alert keeps its severity only when its signals
+# spread across >=2 distinct days AND >=2 distinct evidence entries; a spike
+# packed into one afternoon is downgraded, with the graph evidence attached so
+# the caregiver can click through to WHY. This is the human-trust layer: every
+# alert that survives critique carries its own proof.
+walker:pub critique_alerts {
+    has reports: list[dict] = [];
+
+    can go with Root entry {
+        visit [-->[?:Patient]] else {
+            report {"alerts": [], "critiqued_by": "CritiqueWalker"};
+        }
+    }
+
+    can verify with Patient entry {
+        raw = drift_alerts(here);
+        signals = [here ->:has_signal:->[?:Signal]];
+        out = [];
+        for a in raw {
+            if a["kind"] == "positive_recall" {
+                a["verdict"] = "noted";
+                a["evidence"] = [];
+                out.append(a);
+                continue;
+            }
+            kind_sigs = [s for s in signals if s.kind == a["kind"]];
+            days = len({s.ts[:10] for s in kind_sigs});
+            ev_ids = [];
+            for s in kind_sigs {
+                for ent in [s <-:mentioned:<-[?:Entry]] {
+                    eid = jid(ent);
+                    if eid not in ev_ids {
+                        ev_ids.append(eid);
+                    }
+                }
+            }
+            if days >= 2 and len(ev_ids) >= 2 {
+                a["verdict"] = "confirmed";
+            } else {
+                a["severity"] = "medium" if a["severity"] == "high" else "low";
+                a["verdict"] = "downgraded: single-day spike or thin evidence";
+            }
+            a["evidence"] = ev_ids[:5];
+            out.append(a);
+        }
+        report {"alerts": out, "critiqued_by": "CritiqueWalker"};
     }
 }
 
