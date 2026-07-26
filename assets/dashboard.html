@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CareGraph — Caregiver Console</title>
+<title>Memory Book — Caregiver Console</title>
 <link rel="stylesheet" href="app.css">
 <script src="vendor/d3.v7.min.js"></script>
 <style>
@@ -205,12 +205,6 @@
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
   .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .tcard.linkcard {
-    display: block; text-decoration: none; color: #b06f2b; font-weight: 600;
-    background: #f6efe0;
-  }
-  .tcard.linkcard:hover { box-shadow: 0 6px 24px rgba(120,90,50,.16); }
-  .tcard.linkcard .muted { font-weight: 400; }
   .item { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; cursor: pointer; }
   .item input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: #e08c3e; }
   .preview {
@@ -243,9 +237,25 @@
   #modalClose:hover { background: #f1e9da; color: #6b5c48; filter: none; }
   #modalBody { padding: 16px 18px; overflow-y: auto; font-size: 14px; color: #5a4e3f; }
 
+  /* review-mode modal bits */
+  #modalBody .item span { font-size: 14px; }
+  .daytable { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13.5px; }
+  .daytable th, .daytable td {
+    text-align: left; padding: 6px 10px; border-bottom: 1px solid #ece3d0;
+  }
+  .daytable th { color: #8a7a66; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
   footer {
     padding: 9px 20px; text-align: center; font-size: 12px; color: #8a7a66;
     background: transparent; border: none;
+  }
+
+  /* ---------- print: only #printArea is visible ---------- */
+  #printArea { display: none; }
+  @media print {
+    body > *:not(#printArea) { display: none !important; }
+    #printArea { display: block !important; color: #000; padding: 24px; font-size: 14px; }
+    .daytable th, .daytable td { border-bottom: 1px solid #999; }
   }
 
   @media (max-width: 1280px) {
@@ -268,7 +278,7 @@
 <body>
 
 <header>
-  <span class="brand">Care<span class="dot">Graph</span></span>
+  <span class="brand">Memory <span class="dot">Book</span></span>
   <span id="patientName"></span>
   <div class="askcol">
     <div class="askwrap">
@@ -309,32 +319,32 @@
     <section class="tier" id="tier-raw">
       <div class="rail" data-col="raw" title="Expand">
         <span class="rail-count" id="railcnt-raw">0</span>
-        <span class="rail-title">Raw data</span>
+        <span class="rail-title">What was heard</span>
       </div>
       <div class="tier-head">
         <div style="min-width:0">
-          <h3>Raw data <span class="cnt" id="cnt-raw">0</span></h3>
-          <div class="cap">unit: entry</div>
+          <h3>What was heard <span class="cnt" id="cnt-raw">0</span></h3>
+          <div class="cap">spoken moments</div>
         </div>
         <button class="collapse-btn" data-col="raw" title="Collapse column">&#10094;</button>
       </div>
-      <div class="tier-tools"><input id="rawSearch" placeholder="Filter entries&hellip;" autocomplete="off"></div>
+      <div class="tier-tools"><input id="rawSearch" placeholder="Search moments&hellip;" autocomplete="off"></div>
       <div class="tier-body" id="body-raw"><div class="empty">Loading&hellip;</div></div>
     </section>
 
     <section class="tier" id="tier-daily">
       <div class="rail" data-col="daily" title="Expand">
         <span class="rail-count" id="railcnt-daily">0</span>
-        <span class="rail-title">Daily reports</span>
+        <span class="rail-title">Daily notes</span>
       </div>
       <div class="tier-head">
         <div style="min-width:0">
-          <h3>Daily reports <span class="cnt" id="cnt-daily">0</span></h3>
-          <div class="cap">unit: day &middot; auto</div>
+          <h3>Daily notes <span class="cnt" id="cnt-daily">0</span></h3>
+          <div class="cap">written each day automatically</div>
         </div>
         <button class="collapse-btn" data-col="daily" title="Collapse column">&#10094;</button>
       </div>
-      <div class="tier-tools"><button id="dailyBtn">Generate today&rsquo;s report</button></div>
+      <div class="tier-tools"><button id="dailyBtn">Write today&rsquo;s note</button></div>
       <div class="tier-body" id="body-daily"><div class="empty">Loading&hellip;</div></div>
     </section>
 
@@ -346,13 +356,13 @@
       <div class="tier-head">
         <div style="min-width:0">
           <h3>Handoff <span class="cnt" id="cnt-handoff">0</span></h3>
-          <div class="cap">unit: shift &middot; human-confirmed</div>
+          <div class="cap">checked by a person</div>
         </div>
         <button class="collapse-btn" data-col="handoff" title="Collapse column">&#10094;</button>
       </div>
       <div class="tier-tools">
         <div class="obsrow">
-          <input id="obsInput" placeholder="Log an observation&hellip; (Enter)">
+          <input id="obsInput" placeholder="Write what you noticed&hellip; (Enter)">
           <button id="obsMic" class="ghost micbtn" title="Dictate">&#127908;</button>
         </div>
         <div id="obsLive" class="obslive"></div>
@@ -369,16 +379,18 @@
       <div class="tier-head">
         <div style="min-width:0">
           <h3>Doctor <span class="cnt" id="cnt-doctor">0</span></h3>
-          <div class="cap">unit: visit &middot; manual</div>
+          <div class="cap">for the doctor visit</div>
         </div>
         <button class="collapse-btn" data-col="doctor" title="Collapse column">&#10094;</button>
       </div>
-      <div class="tier-tools"><button id="doctorBtn">Generate doctor report</button></div>
+      <div class="tier-tools"><button id="doctorBtn">Make doctor report</button></div>
       <div class="tier-body" id="body-doctor"><div class="empty">Loading&hellip;</div></div>
     </section>
 
   </div>
 </main>
+
+<div id="printArea"></div>
 
 <div id="modalOverlay">
   <div id="modalBox">
@@ -449,6 +461,36 @@ function fmtDay(ts) {
   const d = new Date(ts);
   if (isNaN(d)) return String(ts || '').slice(0, 10);
   return MONTHS[d.getMonth()] + ' ' + d.getDate();
+}
+
+/* ---------- Plain-English humanizer ----------
+   Every user-visible string that might carry technical tokens goes through
+   this before rendering (cards, checklists, modal, alert chips).           */
+const KIND_LABELS = {
+  repeat_question: 'Repeated question',
+  name_confusion: 'Mixed up a name',
+  disorientation: 'Got disoriented',
+  positive_recall: 'A bright moment',
+  social_moment: 'Good social time'
+};
+const kindLabel = k => KIND_LABELS[String(k || '').toLowerCase()] || String(k || '').replace(/_/g, ' ');
+function humanize(s) {
+  let t = String(s ?? '');
+  t = t.replace(/\[signal:\s*([a-z_]+)\s*\]\s*/gi, (m, k) => kindLabel(k) + ' — ');
+  t = t.replace(/\[L1_wearable\]\s*/gi, 'Heard — ');
+  t = t.replace(/\[L2_caregiver\]\s*/gi, 'Caregiver note — ');
+  t = t.replace(/\bL1_wearable\b/gi, 'heard by the wearable');
+  t = t.replace(/\bL2_caregiver\b/gi, 'caregiver note');
+  for (const k of Object.keys(KIND_LABELS)) t = t.replace(new RegExp('\\b' + k + '\\b', 'g'), KIND_LABELS[k]);
+  return t;
+}
+
+/* ---------- Persistent card dismissals ---------- */
+const DISMISS_KEY = 'mb_dismissed';
+let dismissed = new Set();
+try { dismissed = new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch (e) {}
+function saveDismissed() {
+  try { localStorage.setItem(DISMISS_KEY, JSON.stringify([...dismissed])); } catch (e) {}
 }
 
 /* ---------- D3 graph ---------- */
@@ -661,7 +703,7 @@ async function loadAlerts() {
       // "kind:" prefix since the chip already shows the kind.
       let rate = String(a.detail || '');
       if (a.kind && rate.startsWith(a.kind + ':')) rate = rate.slice(a.kind.length + 1).trim();
-      const kind = String(a.kind || 'alert').replace(/_/g, ' ');
+      const kind = kindLabel(a.kind || 'alert');
       const verdict = a.verdict === 'confirmed'
         ? `<span class="vok">✓ verified · ${a.evidence?.length || 0} evidence</span>`
         : a.verdict ? `<span class="vplain">${esc(a.verdict)}</span>` : '';
@@ -680,7 +722,7 @@ setInterval(loadAlerts, 30000);
 /* ---------- Tier columns: state ---------- */
 let timelineData = { entries: [], reports: [], patient: null };
 let rawQuery = '';
-let handoffDraft = null;          // {report_id, items, content, status, approvedCount, confirmedAt}
+let handoffDraft = null;          // {report_id, items, content} — reviewed in the modal
 let doctorCards = [];             // client-side only: doctor_report does not persist
 let modalOpen = false;
 const expandedKeys = new Set();
@@ -692,6 +734,7 @@ function setCount(col, n) {
 }
 
 function tcard(key, mtitle, headHTML, text, md) {
+  text = humanize(text);
   CARD_REG.set(key, { title: mtitle, text: String(text || ''), md: !!md });
   const open = expandedKeys.has(key);
   const inner = md ? mdish(text) : esc(text).replace(/\n/g, '<br>');
@@ -709,18 +752,19 @@ const byTsDesc = (a, b) => String(b.ts || '').localeCompare(String(a.ts || ''));
 let knownEntryIds = null;   // null until first render: seed data never flashes
 function renderRaw() {
   const box = document.getElementById('body-raw');
-  const all = (timelineData.entries || []).slice().sort(byTsDesc);
-  setCount('raw', all.length);
+  const fetched = (timelineData.entries || []).slice().sort(byTsDesc);
   const fresh = new Set();
   if (knownEntryIds !== null) {
-    for (const en of all) { if (!knownEntryIds.has(en.id)) fresh.add(en.id); }
+    for (const en of fetched) { if (!knownEntryIds.has(en.id)) fresh.add(en.id); }
   }
-  knownEntryIds = new Set(all.map(en => en.id));
+  knownEntryIds = new Set(fetched.map(en => en.id));
+  const all = fetched.filter(en => !dismissed.has('entry:' + en.id));
+  setCount('raw', all.length);
   const shown = rawQuery
     ? all.filter(en => (String(en.text || '') + ' ' + fmtTs(en.ts)).toLowerCase().includes(rawQuery))
     : all;
   if (!shown.length) {
-    box.innerHTML = `<div class="empty">${rawQuery ? 'No entries match.' : 'No entries yet.'}</div>`;
+    box.innerHTML = `<div class="empty">${rawQuery ? 'No matches.' : 'Nothing here yet.'}</div>`;
     return;
   }
   box.innerHTML = shown.map(en => {
@@ -737,13 +781,14 @@ document.getElementById('rawSearch').addEventListener('input', e => {
 /* ---------- Column ②: Daily reports ---------- */
 function renderDaily() {
   const box = document.getElementById('body-daily');
-  const reps = (timelineData.reports || []).filter(r => r.kind === 'daily').sort(byTsDesc);
+  const reps = (timelineData.reports || [])
+    .filter(r => r.kind === 'daily' && !dismissed.has('report:' + r.id)).sort(byTsDesc);
   setCount('daily', reps.length);
-  if (!reps.length) { box.innerHTML = '<div class="empty">No daily reports yet.</div>'; return; }
+  if (!reps.length) { box.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
   box.innerHTML = reps.map(r => {
-    const head = '<span class="rtitle">Daily</span><span class="spacer"></span>'
+    const head = '<span class="rtitle">Daily note</span><span class="spacer"></span>'
       + `<span class="time">${esc(fmtDay(r.ts))}</span>` + statusChip(r.status);
-    return tcard('report:' + r.id, 'Daily report — ' + fmtDay(r.ts), head, r.content || '', true);
+    return tcard('report:' + r.id, 'Daily note — ' + fmtDay(r.ts), head, r.content || '', true);
   }).join('');
 }
 function newestEntryDate() {
@@ -760,55 +805,66 @@ document.getElementById('dailyBtn').addEventListener('click', async () => {
   try {
     await callWalker('daily_report', { date: newestEntryDate() });
     await loadTimeline();
-  } catch (e) { alert('Report failed: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Generate today’s report'; }
+  } catch (e) { alert('Could not write the note: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Write today’s note'; }
 });
 
 /* ---------- Column ③: Handoff ---------- */
+/* Draft flow: one compact card in the column; the actual checklist review
+   happens in the fullscreen modal (openReviewModal). */
 function draftCardHTML() {
   const d = handoffDraft;
-  if (!d) return '';
-  if (d.status === 'confirmed') {
-    return `<div class="tcard" data-static="1">
-      <div class="thead"><span class="chip green">confirmed</span><span class="spacer"></span>
-        <span class="time">${esc(d.confirmedAt || '')}</span>
-        <button class="xbtn" title="Hide card">&#10005;</button></div>
-      <div class="tbody"><span class="ok">✓</span> Handoff confirmed (${d.approvedCount} item${d.approvedCount === 1 ? '' : 's'}).</div>
-    </div>`;
-  }
-  return `<div class="tcard" data-static="1" style="cursor:default">
+  if (!d || dismissed.has('draft:' + d.report_id)) return '';
+  const n = d.items.length;
+  return `<div class="tcard" data-review="1" data-key="${esc('draft:' + d.report_id)}">
     <div class="thead"><span class="chip amber">draft</span><span class="spacer"></span>
-      <span class="time">review &amp; confirm</span>
       <button class="xbtn" title="Hide card">&#10005;</button></div>
-    ${d.items.map(it => `<label class="item"><input type="checkbox" checked value="${esc(it.id)}"><span>${esc(it.text)}</span></label>`).join('')}
-    ${d.content ? `<div class="preview">${mdish(d.content)}</div>` : ''}
-    <button id="handoffConfirm" style="margin-top:10px;width:100%">Confirm</button>
+    <div class="tbody"><strong>Draft — tap to review</strong> · ${n} item${n === 1 ? '' : 's'}</div>
   </div>`;
 }
 function renderHandoff() {
   const box = document.getElementById('body-handoff');
   const past = (timelineData.reports || [])
-    .filter(r => r.kind === 'handoff' && !(handoffDraft && r.id === handoffDraft.report_id))
+    .filter(r => r.kind === 'handoff'
+      && !(handoffDraft && r.id === handoffDraft.report_id)
+      && !dismissed.has('report:' + r.id))
     .sort(byTsDesc);
-  setCount('handoff', past.length + (handoffDraft ? 1 : 0));
+  const draftHTML = draftCardHTML();
+  setCount('handoff', past.length + (draftHTML ? 1 : 0));
   const pastHTML = past.map(r => {
     const head = '<span class="rtitle">Handoff</span><span class="spacer"></span>'
       + `<span class="time">${esc(fmtTs(r.ts))}</span>` + statusChip(r.status);
     return tcard('report:' + r.id, 'Handoff — ' + fmtTs(r.ts), head, r.content || '', true);
   }).join('');
-  box.innerHTML = (draftCardHTML() + pastHTML) || '<div class="empty">No handoffs yet — draft one.</div>';
-  const confirmBtn = document.getElementById('handoffConfirm');
-  if (confirmBtn) confirmBtn.addEventListener('click', async ev => {
-    ev.target.disabled = true;
-    const approved = [...box.querySelectorAll('.tcard[data-static] input:checked')].map(el => el.value);
+  box.innerHTML = (draftHTML + pastHTML) || '<div class="empty">Nothing here yet — tap “Draft handoff”.</div>';
+}
+function openReviewModal() {
+  const d = handoffDraft;
+  if (!d) return;
+  modalOpen = true;
+  document.getElementById('modalTitle').textContent = 'Review handoff — uncheck anything not to pass on';
+  const list = d.items.length
+    ? d.items.map(it =>
+        `<label class="item"><input type="checkbox" checked value="${esc(it.id)}"><span>${esc(humanize(it.text))}</span></label>`
+      ).join('')
+    : '<div class="muted">No new items since the last handoff.</div>';
+  document.getElementById('modalBody').innerHTML = list
+    + (d.content ? `<div class="preview" style="max-height:none">${mdish(humanize(d.content))}</div>` : '')
+    + `<button id="reviewConfirm" style="margin-top:14px;width:100%">Confirm handoff</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('reviewConfirm').addEventListener('click', async ev => {
+    ev.target.disabled = true; ev.target.textContent = 'Confirming…';
+    const approved = [...document.querySelectorAll('#modalBody input:checked')].map(el => el.value);
     try {
-      await callWalker('handoff_confirm', { report_id: handoffDraft.report_id, approved });
-      handoffDraft.status = 'confirmed';
-      handoffDraft.approvedCount = approved.length;
-      handoffDraft.confirmedAt = fmtTs(new Date().toISOString());
-      renderHandoff();
-      loadTimeline();
-    } catch (e) { ev.target.disabled = false; alert('Confirm failed: ' + e.message); }
+      await callWalker('handoff_confirm', { report_id: d.report_id, approved });
+      handoffDraft = null;         // draft is done — the confirmed card comes from the timeline
+      closeModal();
+      await loadTimeline();
+      loadAlerts();
+    } catch (e) {
+      ev.target.disabled = false; ev.target.textContent = 'Confirm handoff';
+      alert('Confirm failed: ' + e.message);
+    }
   });
 }
 /* ---------- Caregiver observation input (feeds the graph as L2) ---------- */
@@ -856,37 +912,72 @@ document.getElementById('handoffBtn').addEventListener('click', async () => {
     handoffDraft = {
       report_id: d.report_id,
       items: Array.isArray(d.items) ? d.items : [],
-      content: d.content || '',
-      status: 'draft'
+      content: d.content || ''
     };
+    dismissed.delete('draft:' + handoffDraft.report_id);   // a fresh draft always shows
     renderHandoff();
   } catch (e) { alert('Could not draft handoff: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = 'Draft handoff'; }
 });
 
-/* ---------- Column ④: Doctor ---------- */
+/* ---------- Column ④: Doctor (self-contained — no separate page) ---------- */
 function renderDoctor() {
   const box = document.getElementById('body-doctor');
-  setCount('doctor', doctorCards.length);
-  const cards = doctorCards.map((c, i) => {
-    const head = '<span class="rtitle">Doctor report</span><span class="spacer"></span>'
-      + `<span class="time">${esc(c.ts)}</span>`;
-    return tcard('doctor:' + i, 'Doctor report — ' + c.ts, head, c.content, true);
-  }).join('');
-  box.innerHTML = cards
-    + `<a class="tcard linkcard" href="doctor.html">Open print view &rarr;
-        <div class="muted" style="margin-top:3px;font-size:12px">print-friendly · weekly trends</div></a>`;
+  const shown = doctorCards.filter(c => !dismissed.has('doctor:' + c.id));
+  setCount('doctor', shown.length);
+  if (!shown.length) { box.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
+  box.innerHTML = shown.map(c => `<div class="tcard" data-doctor="${esc(c.id)}" data-key="${esc('doctor:' + c.id)}">
+    <div class="thead"><span class="rtitle">Doctor report</span><span class="spacer"></span>
+      <span class="time">${esc(c.ts)}</span>
+      <button class="xbtn" title="Hide card">&#10005;</button></div>
+    <div class="tbody clamp3">${mdish(humanize(c.content))}</div>
+  </div>`).join('');
+}
+function dayWords(w) {
+  const rq = +w.repeat_q || 0, cf = +w.confusions || 0;
+  if (!rq && !cf) return 'a calm day';
+  const parts = [];
+  if (rq) parts.push(rq + (rq === 1 ? ' repeated question' : ' repeated questions'));
+  if (cf) parts.push(cf + (cf === 1 ? ' time confused' : ' times confused'));
+  return parts.join(' · ');
+}
+function openDoctorModal(c) {
+  modalOpen = true;
+  document.getElementById('modalTitle').textContent = 'Doctor report — ' + c.ts;
+  const rows = (c.weekly || []).map(w =>
+    `<tr><td>${esc(w.week)}</td><td>${esc(dayWords(w))}</td></tr>`).join('');
+  const table = rows
+    ? `<table class="daytable"><thead><tr><th>Day</th><th>What we counted</th></tr></thead><tbody>${rows}</tbody></table>`
+    : '';
+  document.getElementById('modalBody').innerHTML =
+    `<div id="doctorPrintable"><div>${mdish(humanize(c.content))}</div>${table}</div>
+     <button id="printDoctor" class="ghost" style="margin-top:14px;width:100%">Print</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('printDoctor').addEventListener('click', () => {
+    // Print ONLY the report: copy it into #printArea (the sole element
+    // visible under @media print), then print.
+    const pa = document.getElementById('printArea');
+    pa.innerHTML = '<h2>Memory Book — Doctor report</h2>'
+      + '<div class="muted">' + esc(c.ts) + '</div>'
+      + document.getElementById('doctorPrintable').innerHTML;
+    window.print();
+  });
 }
 document.getElementById('doctorBtn').addEventListener('click', async () => {
   const btn = document.getElementById('doctorBtn');
   btn.disabled = true; btn.textContent = 'Writing…';
   try {
     const r = await callWalker('doctor_report');
-    doctorCards.unshift({ content: r.content || '(empty report)', ts: fmtTs(new Date().toISOString()) });
+    doctorCards.unshift({
+      id: 'd' + Date.now(),
+      content: r.content || '(empty report)',
+      weekly: Array.isArray(r.weekly) ? r.weekly : [],
+      ts: fmtTs(new Date().toISOString())
+    });
     renderDoctor();
     loadTimeline();
   } catch (e) { alert('Report failed: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'Generate doctor report'; }
+  finally { btn.disabled = false; btn.textContent = 'Make doctor report'; }
 });
 
 /* ---------- Timeline load + poll ---------- */
@@ -914,14 +1005,25 @@ const tiersEl = document.getElementById('tiers');
 let clickTimer = null;
 tiersEl.addEventListener('click', e => {
   const xb = e.target.closest('.xbtn');
-  if (xb) {                        // client-side hide; card reappears on next refresh
+  if (xb) {                        // persistent dismiss: survives every refresh
     const c = xb.closest('.tcard');
-    if (c) c.remove();
+    if (c) {
+      if (c.dataset.key) { dismissed.add(c.dataset.key); saveDismissed(); }
+      c.remove();
+      renderAll();                 // recount badges + restore empty states
+    }
     return;
   }
   if (e.target.closest('button, a, input, label')) return;
   const card = e.target.closest('.tcard');
-  if (!card || card.dataset.static || !card.dataset.key) return;
+  if (!card || card.dataset.static) return;
+  if (card.dataset.review) { openReviewModal(); return; }        // handoff draft review
+  if (card.dataset.doctor) {                                     // doctor report + table + print
+    const c = doctorCards.find(x => x.id === card.dataset.doctor);
+    if (c) openDoctorModal(c);
+    return;
+  }
+  if (!card.dataset.key) return;
   // Unified: every card opens the fullscreen modal — columns stay compact,
   // detail lives in the overlay.
   const reg = CARD_REG.get(card.dataset.key);
@@ -930,6 +1032,7 @@ tiersEl.addEventListener('click', e => {
 
 function openModal(title, text, md) {
   modalOpen = true;
+  text = humanize(text);
   document.getElementById('modalTitle').textContent = title || '';
   document.getElementById('modalBody').innerHTML = md ? mdish(text) : esc(text).replace(/\n/g, '<br>');
   document.getElementById('modalOverlay').classList.add('show');
@@ -970,6 +1073,8 @@ document.getElementById('resetBtn').addEventListener('click', async () => {
     handoffDraft = null;
     doctorCards = [];
     expandedKeys.clear();
+    dismissed.clear();               // dismissed cards come back on reset
+    saveDismissed();
     await pollGraph();
     loadAlerts();
     await loadTimeline();
