@@ -6,11 +6,24 @@
       "source": "L1_wearable",
       "text": "Emma said Sunday, didn't she? Sunday the twenty-sixth, I wrote it on the calendar. What day is it today?",
       "extracted": {
-        "persons": [{ "name": "Emma", "relation": "granddaughter" }],
+        "persons": [
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          }
+        ],
         "facts": [],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what day it is" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is"
+          }
         ]
       }
     },
@@ -19,12 +32,25 @@
       "source": "L1_wearable",
       "text": "These tomatoes are nearly there, another week of sun. Harold built these beds himself — best soil on the street, he always said.",
       "extracted": {
-        "persons": [{ "name": "Harold", "relation": "late husband" }],
+        "persons": [
+          {
+            "name": "Harold",
+            "relation": "late husband"
+          }
+        ],
         "facts": [
-          { "text": "Grows tomatoes in the backyard garden", "category": "routine" }
+          {
+            "text": "Grows tomatoes in the backyard garden",
+            "category": "routine"
+          }
         ],
         "events": [],
-        "signals": []
+        "signals": [
+          {
+            "kind": "social_moment",
+            "detail": "Chatted easily about the tomatoes and Harold while gardening"
+          }
+        ]
       }
     },
     {
@@ -32,11 +58,19 @@
       "source": "L2_caregiver",
       "text": "Ate a full dinner and helped dry the dishes. Asked once while I was cooking what we were having, though we had planned it together an hour before.",
       "extracted": {
-        "persons": [{ "name": "Maria", "relation": "caregiver" }],
+        "persons": [
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
+        ],
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what was for dinner after planning it together" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what was for dinner after planning it together"
+          }
         ]
       }
     },
@@ -45,13 +79,24 @@
       "source": "L1_wearable",
       "text": "Is it Tuesday? Rosa comes Tuesdays for tea. No — Monday, you're right. Tea is tomorrow, then.",
       "extracted": {
-        "persons": [{ "name": "Rosa", "relation": "neighbor" }],
+        "persons": [
+          {
+            "name": "Rosa",
+            "relation": "neighbor"
+          }
+        ],
         "facts": [
-          { "text": "Has tea with Rosa every Tuesday", "category": "routine" }
+          {
+            "text": "Has tea with Rosa every Tuesday",
+            "category": "routine"
+          }
         ],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked whether it was Tuesday" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether it was Tuesday"
+          }
         ]
       }
     },
@@ -60,12 +105,23 @@
       "source": "L2_caregiver",
       "text": "Good morning overall. Asked what was for lunch twice between eleven and noon; accepted the answer cheerfully both times.",
       "extracted": {
-        "persons": [{ "name": "Maria", "relation": "caregiver" }],
+        "persons": [
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
+        ],
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what was for lunch (first time)" },
-          { "kind": "repeat_question", "detail": "Asked what was for lunch again within the hour" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what was for lunch (first time)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what was for lunch again within the hour"
+          }
         ]
       }
     },
@@ -74,12 +130,30 @@
       "source": "L1_wearable",
       "text": "Emma likes the little yellow ones, the sweet ones. I'll save her a bowl for Sunday.",
       "extracted": {
-        "persons": [{ "name": "Emma", "relation": "granddaughter" }],
-        "facts": [
-          { "text": "Emma likes the yellow cherry tomatoes", "category": "preference" }
+        "persons": [
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          }
         ],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
-        "signals": []
+        "facts": [
+          {
+            "text": "Emma likes the yellow cherry tomatoes",
+            "category": "preference"
+          }
+        ],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
+        "signals": [
+          {
+            "kind": "social_moment",
+            "detail": "Planned ahead warmly — saving the yellow tomatoes for Emma"
+          }
+        ]
       }
     },
     {
@@ -88,12 +162,24 @@
       "text": "Rosa, this is the same pot Harold gave me — forty years and not a chip. You take honey, not sugar. I remember that much.",
       "extracted": {
         "persons": [
-          { "name": "Rosa", "relation": "neighbor" },
-          { "name": "Harold", "relation": "late husband" }
+          {
+            "name": "Rosa",
+            "relation": "neighbor"
+          },
+          {
+            "name": "Harold",
+            "relation": "late husband"
+          }
         ],
         "facts": [
-          { "text": "Has tea with Rosa every Tuesday", "category": "routine" },
-          { "text": "Rosa takes honey in her tea, not sugar", "category": "preference" }
+          {
+            "text": "Has tea with Rosa every Tuesday",
+            "category": "routine"
+          },
+          {
+            "text": "Rosa takes honey in her tea, not sugar",
+            "category": "preference"
+          }
         ],
         "events": [],
         "signals": []
@@ -105,15 +191,39 @@
       "text": "Tea with Rosa ran over an hour, lots of laughing. Afterward she asked me twice whether Emma's visit is this Sunday or next.",
       "extracted": {
         "persons": [
-          { "name": "Rosa", "relation": "neighbor" },
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Maria", "relation": "caregiver" }
+          {
+            "name": "Rosa",
+            "relation": "neighbor"
+          },
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
         ],
         "facts": [],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked whether Emma's visit is this Sunday" },
-          { "kind": "repeat_question", "detail": "Asked again about the date of Emma's visit" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether Emma's visit is this Sunday"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked again about the date of Emma's visit"
+          },
+          {
+            "kind": "social_moment",
+            "detail": "Over an hour of tea and laughing with Rosa"
+          }
         ]
       }
     },
@@ -126,7 +236,10 @@
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked whether breakfast had happened" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether breakfast had happened"
+          }
         ]
       }
     },
@@ -136,13 +249,22 @@
       "text": "Lily? Is that you, Lily? ... Oh — Emma. Of course, sweetheart, of course. You sound so like her on the phone.",
       "extracted": {
         "persons": [
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Lily", "relation": "late sister" }
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Lily",
+            "relation": "late sister"
+          }
         ],
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "name_confusion", "detail": "Called Emma 'Lily' on the phone — Lily is her late sister" }
+          {
+            "kind": "name_confusion",
+            "detail": "Called Emma 'Lily' on the phone — Lily is her late sister"
+          }
         ]
       }
     },
@@ -152,17 +274,44 @@
       "text": "After the call she sat by the window a long while. Told me Lily was her sister who died young, and that Emma has her laugh. Asked twice at dinner what day Emma is coming.",
       "extracted": {
         "persons": [
-          { "name": "Lily", "relation": "late sister" },
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Maria", "relation": "caregiver" }
+          {
+            "name": "Lily",
+            "relation": "late sister"
+          },
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
         ],
         "facts": [
-          { "text": "Lily was her younger sister who died young", "category": "person" }
+          {
+            "text": "Lily was her younger sister who died young",
+            "category": "person"
+          }
         ],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what day Emma is coming" },
-          { "kind": "repeat_question", "detail": "Asked again at dinner when Emma arrives" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day Emma is coming"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked again at dinner when Emma arrives"
+          },
+          {
+            "kind": "social_moment",
+            "detail": "Long reflective chat by the window after the call"
+          }
         ]
       }
     },
@@ -171,13 +320,27 @@
       "source": "L2_caregiver",
       "text": "Asked what day it is three times before ten o'clock. Redirected easily each time, but the question keeps circling back.",
       "extracted": {
-        "persons": [{ "name": "Maria", "relation": "caregiver" }],
+        "persons": [
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
+        ],
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what day it is (before breakfast)" },
-          { "kind": "repeat_question", "detail": "Asked what day it is (mid-morning)" },
-          { "kind": "repeat_question", "detail": "Asked what day it is (just before ten)" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (before breakfast)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (mid-morning)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (just before ten)"
+          }
         ]
       }
     },
@@ -188,11 +351,17 @@
       "extracted": {
         "persons": [],
         "facts": [
-          { "text": "Taught at Whitfield Elementary for many years", "category": "place" }
+          {
+            "text": "Taught at Whitfield Elementary for many years",
+            "category": "place"
+          }
         ],
         "events": [],
         "signals": [
-          { "kind": "disorientation", "detail": "Went out looking for the bus stop to Whitfield Elementary, where she taught decades ago" }
+          {
+            "kind": "disorientation",
+            "detail": "Went out looking for the bus stop to Whitfield Elementary, where she taught decades ago"
+          }
         ]
       }
     },
@@ -201,14 +370,28 @@
       "source": "L2_caregiver",
       "text": "Found her at the corner looking for a bus to her old school; she came home holding my arm, quiet. At dinner she asked twice what we were having.",
       "extracted": {
-        "persons": [{ "name": "Maria", "relation": "caregiver" }],
+        "persons": [
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
+        ],
         "facts": [
-          { "text": "Taught at Whitfield Elementary for many years", "category": "place" }
+          {
+            "text": "Taught at Whitfield Elementary for many years",
+            "category": "place"
+          }
         ],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what was for dinner" },
-          { "kind": "repeat_question", "detail": "Asked about dinner again minutes later" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what was for dinner"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked about dinner again minutes later"
+          }
         ]
       }
     },
@@ -218,16 +401,34 @@
       "text": "Harder morning. Asked what day it is, and whether Emma had already come and gone — four times before breakfast was over.",
       "extracted": {
         "persons": [
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Maria", "relation": "caregiver" }
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
         ],
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what day it is" },
-          { "kind": "repeat_question", "detail": "Asked whether Emma had already visited" },
-          { "kind": "repeat_question", "detail": "Asked the day again during breakfast" },
-          { "kind": "repeat_question", "detail": "Asked about Emma's visit again before clearing plates" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether Emma had already visited"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked the day again during breakfast"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked about Emma's visit again before clearing plates"
+          }
         ]
       }
     },
@@ -236,13 +437,28 @@
       "source": "L1_wearable",
       "text": "That's Duke Ellington — 'In a Sentimental Mood.' Harold and I danced to this at the Aragon before we were married. Play it again.",
       "extracted": {
-        "persons": [{ "name": "Harold", "relation": "late husband" }],
+        "persons": [
+          {
+            "name": "Harold",
+            "relation": "late husband"
+          }
+        ],
         "facts": [
-          { "text": "Loves Duke Ellington and big-band jazz", "category": "preference" }
+          {
+            "text": "Loves Duke Ellington and big-band jazz",
+            "category": "preference"
+          }
         ],
         "events": [],
         "signals": [
-          { "kind": "positive_recall", "detail": "Recognized 'In a Sentimental Mood' instantly and sang along, naming Duke Ellington unprompted" }
+          {
+            "kind": "positive_recall",
+            "detail": "Recognized 'In a Sentimental Mood' instantly and sang along, naming Duke Ellington unprompted"
+          },
+          {
+            "kind": "social_moment",
+            "detail": "Sang along with the record, relaxed and present"
+          }
         ]
       }
     },
@@ -253,12 +469,21 @@
       "extracted": {
         "persons": [],
         "facts": [
-          { "text": "Grows tomatoes in the backyard garden", "category": "routine" }
+          {
+            "text": "Grows tomatoes in the backyard garden",
+            "category": "routine"
+          }
         ],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked whether the tomatoes were watered" },
-          { "kind": "repeat_question", "detail": "Asked what was for dinner, aware she may have asked before" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether the tomatoes were watered"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what was for dinner, aware she may have asked before"
+          }
         ]
       }
     },
@@ -268,14 +493,31 @@
       "text": "Restless evening. Asked twice more when Emma is coming; at her own request we wrote 'SUNDAY — EMMA' on a card for the nightstand.",
       "extracted": {
         "persons": [
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Maria", "relation": "caregiver" }
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
         ],
         "facts": [],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked when Emma is coming" },
-          { "kind": "repeat_question", "detail": "Asked again about Emma's visit before bed" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked when Emma is coming"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked again about Emma's visit before bed"
+          }
         ]
       }
     },
@@ -285,17 +527,38 @@
       "text": "Asked what day it is five times before nine. She keeps going back to the nightstand card and reading it aloud: Sunday, Emma.",
       "extracted": {
         "persons": [
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Maria", "relation": "caregiver" }
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
         ],
         "facts": [],
         "events": [],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked what day it is (1 of 5 before nine)" },
-          { "kind": "repeat_question", "detail": "Asked what day it is (2 of 5)" },
-          { "kind": "repeat_question", "detail": "Asked what day it is (3 of 5)" },
-          { "kind": "repeat_question", "detail": "Asked what day it is (4 of 5)" },
-          { "kind": "repeat_question", "detail": "Asked what day it is (5 of 5)" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (1 of 5 before nine)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (2 of 5)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (3 of 5)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (4 of 5)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what day it is (5 of 5)"
+          }
         ]
       }
     },
@@ -306,11 +569,17 @@
       "extracted": {
         "persons": [],
         "facts": [
-          { "text": "Taught at Whitfield Elementary for many years", "category": "place" }
+          {
+            "text": "Taught at Whitfield Elementary for many years",
+            "category": "place"
+          }
         ],
         "events": [],
         "signals": [
-          { "kind": "disorientation", "detail": "Believed she needed to reach her old school before the bell and looked for the bus" }
+          {
+            "kind": "disorientation",
+            "detail": "Believed she needed to reach her old school before the bell and looked for the bus"
+          }
         ]
       }
     },
@@ -319,13 +588,32 @@
       "source": "L1_wearable",
       "text": "Is Emma here yet? Is it Sunday? ... Tomorrow. Tomorrow, that's right. What should we make her for lunch?",
       "extracted": {
-        "persons": [{ "name": "Emma", "relation": "granddaughter" }],
+        "persons": [
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          }
+        ],
         "facts": [],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked whether Emma had arrived" },
-          { "kind": "repeat_question", "detail": "Asked whether it was Sunday" },
-          { "kind": "repeat_question", "detail": "Asked what to make Emma for lunch, shortly after settling it" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether Emma had arrived"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked whether it was Sunday"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked what to make Emma for lunch, shortly after settling it"
+          }
         ]
       }
     },
@@ -335,17 +623,40 @@
       "text": "Tired by evening; asked three more times about tomorrow's visit. Then she went out and picked the yellow tomatoes for Emma's bowl herself — knew exactly which ones.",
       "extracted": {
         "persons": [
-          { "name": "Emma", "relation": "granddaughter" },
-          { "name": "Maria", "relation": "caregiver" }
+          {
+            "name": "Emma",
+            "relation": "granddaughter"
+          },
+          {
+            "name": "Maria",
+            "relation": "caregiver"
+          }
         ],
         "facts": [
-          { "text": "Emma likes the yellow cherry tomatoes", "category": "preference" }
+          {
+            "text": "Emma likes the yellow cherry tomatoes",
+            "category": "preference"
+          }
         ],
-        "events": [{ "text": "Emma visiting for Sunday lunch", "date": "2026-07-26" }],
+        "events": [
+          {
+            "text": "Emma visiting for Sunday lunch",
+            "date": "2026-07-26"
+          }
+        ],
         "signals": [
-          { "kind": "repeat_question", "detail": "Asked about tomorrow's visit (evening, 1 of 3)" },
-          { "kind": "repeat_question", "detail": "Asked about tomorrow's visit (evening, 2 of 3)" },
-          { "kind": "repeat_question", "detail": "Asked about tomorrow's visit (evening, 3 of 3)" }
+          {
+            "kind": "repeat_question",
+            "detail": "Asked about tomorrow's visit (evening, 1 of 3)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked about tomorrow's visit (evening, 2 of 3)"
+          },
+          {
+            "kind": "repeat_question",
+            "detail": "Asked about tomorrow's visit (evening, 3 of 3)"
+          }
         ]
       }
     }

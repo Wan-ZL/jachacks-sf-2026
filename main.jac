@@ -388,9 +388,16 @@ def drift_alerts(patient: Patient) -> list[dict] {
                 base_rate = b / 5.0;
                 if now_rate > base_rate * 1.5 {
                     sev = "high" if now_rate > base_rate * 2.0 else "medium";
+                    # rates, not raw counts — unequal windows (2d vs 5d) make
+                    # "19 vs 15" read flat when the real jump is 3.2x
+                    if b == 0 {
+                        trend = f"{kind}: {now_rate:.1f}/day — new this week";
+                    } else {
+                        trend = f"{kind}: {now_rate:.1f}/day now vs {base_rate:.1f}/day baseline ({now_rate / max(base_rate, 0.1):.1f}x)";
+                    }
                     alerts.append({
                         "kind": kind,
-                        "detail": f"{kind}: {n} in the last 2 days vs {b} in the prior 5",
+                        "detail": trend,
                         "now_count": n,
                         "base_count": b,
                         "severity": sev

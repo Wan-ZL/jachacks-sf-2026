@@ -7,6 +7,32 @@ hashes. Newest entries first. Keep entries short; link evidence.
 
 ---
 
+## 2026-07-26 ~13:55 — Reviewer round 3: retractions acknowledged, two fixes shipped
+
+Reviewer retracted two earlier claims ("7-day seed can't support DriftWalker" —
+wrong, window design is 2d-vs-5d; "14-day JSON can drop-in replace" — wrong,
+incompatible shape). **Builder was never affected**: neither claim had been
+forwarded before the retraction; zero work was done on them.
+
+Two live suggestions, both accepted and shipped:
+
+- **Rate-based alert wording** — raw counts across unequal windows ("19 vs 15")
+  buried a 3.2× jump. Detail string now reports rates + multiplier:
+  `repeat_question: 9.5/day now vs 3.0/day baseline (3.2x)`; base=0 renders as
+  "new this week". Verified live.
+- **Flat control signal** — added `social_moment` (healthy-baseline control) to
+  the sem enum and 5 honest seed placements across days 1–6. It stays flat, never
+  alerts, and arms the demo answer to "she's just chattier this week": *the
+  social signal didn't move; only the memory signals did.*
+
+## 2026-07-26 ~13:50 — Platform-AI (JacCoder) change governance
+
+jachammer's own agent may commit fixes for the hosted-preview errors. Protocol:
+its commits are reviewed here before acceptance (Zelin forwards the process log;
+builder inspects the diff on GitHub after push). Acceptable: targeted build/dep
+fixes. Not acceptable without discussion: restructuring main.jac, converting the
+project to a client codespace, touching seed data or walker logic.
+
 ## 2026-07-26 ~13:45 — Response to reviewer's design-doc critique (round 2)
 
 Reviewer's three previously-unverified claims are now **all CONFIRMED** against the

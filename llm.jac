@@ -39,7 +39,7 @@ obj ExtractedSignal {
         detail: str;
 }
 sem ExtractedSignal = "A cognitive-health signal observed in the conversation of an Alzheimer's patient.";
-sem ExtractedSignal.kind = "Exactly one of: repeat_question (patient asked the same question more than once) | name_confusion (patient mixed up or forgot a name) | disorientation (confused about time, place, or situation) | positive_recall (patient correctly remembered something noteworthy).";
+sem ExtractedSignal.kind = "Exactly one of: repeat_question (patient asked the same question more than once) | name_confusion (patient mixed up or forgot a name) | disorientation (confused about time, place, or situation) | positive_recall (patient correctly remembered something noteworthy) | social_moment (patient engaged normally and warmly in conversation or activity — the healthy-baseline control signal).";
 sem ExtractedSignal.detail = "One short sentence describing the observation, including counts if present (e.g. 'asked what day it is three times').";
 
 obj ExtractResult {
