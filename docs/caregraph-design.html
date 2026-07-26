@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareGraph — 团队设计 &amp; 作战卡</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 15px; line-height: 1.55; color: #1a1a2e; max-width: 880px; margin: 0 auto; padding: 20px 16px 60px; background: #fafafa; }
+  h1 { font-size: 23px; margin: 6px 0 2px; }
+  h2 { font-size: 18px; margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 2px solid #e0e0e8; }
+  .card { background: #fff; border-radius: 8px; padding: 12px 16px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #ccc; }
+  .good { border-left-color: #34a853; } .warn { border-left-color: #fbbc04; } .bad { border-left-color: #ea4335; } .info { border-left-color: #4285f4; }
+  .tldr { background: #eef4ff; border-left-color: #4285f4; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; background: #fff; font-size: 13.5px; }
+  th, td { border: 1px solid #e0e0e8; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #f0f2f8; white-space: nowrap; }
+  code { background: #f0f0f5; padding: 1px 5px; border-radius: 4px; font-family: Menlo, monospace; font-size: 12.5px; }
+  .money { color: #0b8043; font-weight: 600; }
+  .deadline { color: #c5221f; font-weight: 600; }
+  .muted { color: #666; font-size: 13px; }
+  svg { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: block; margin: 10px 0; max-width: 100%; height: auto; }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  p { margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<h1>CareGraph — 团队设计 &amp; 作战卡</h1>
+<p class="muted">JacHacks SF · 2026-07-26 · 提交截止 <span class="deadline">19:15 硬截止</span>（17:50 必交 Devpost 草稿）· 现在 ~11:30，剩 ~7.5 小时</p>
+
+<h2>30 秒版</h2>
+<div class="card tldr">
+  <p><strong>一句话：</strong>挂在 Alzheimer's 患者胸前的一台旧手机<strong>自动听、自动记</strong>：对话在手机本地转成文字（音频永不离开设备），攒批交给 LLM 抽取，长成一张"她还记得什么"的记忆图谱。图谱<strong>自动检测衰退、自动报警、自动起草交接简报</strong>——照护者只做最后确认，医生打开就是完整病程趋势。<strong>人不再负责记录，只负责签字。</strong></p>
+  <p><strong>Tagline：</strong>See what she still remembers — and know the moment it starts to fade.</p>
+  <p><strong>为什么能赢：</strong>① <strong>全自动闭环</strong>：感知→抽取→检测→起草，人只出现在确认环节——"Depth of Agentic Behavior" 评分项直接拉满；② 医疗+弱势群体 = 本系列最高产获奖域（上届 13 奖中 6 个健康类）；③ 架构就是 Jac 官方招牌范式（typed 图 + walker 议会 + byLLM 只在边界），同时押 3 个奖：Social Impact + Best Use of Jac + Best JacHammer。</p>
+</div>
+
+<h2>故事（demo 开场 20 秒念这个）</h2>
+<div class="card good">
+  <p>"美国有 690 万 Alzheimer's 患者，1100 万家人在照护他们。没有人能准确回答：<em>妈妈比上个月忘得更快了吗？</em>等家人'感觉不对'时，往往已经晚了半年。</p>
+  <p>CareGraph：挂在胸前的一台旧手机静静听着她一天的对话——音频不出设备，只有文字进入她的记忆图谱。图谱自动生长、自动报警（'重复提问这周从 3 次涨到 11 次'）。交接班时 AI 已把简报起草好，照护者只需逐条确认。医生打开趋势页，看到的是完整病程曲线，不是家属一句模糊的'好像更严重了'。<strong>人不再负责记录，只负责确认。第一次，家人能亲眼看见亲人还记得的世界——以及它正在哪里褪色。</strong>"</p>
+</div>
+
+<h2>三层结构（队内讨论定稿：数据质量逐层精炼，全程时间轴）</h2>
+<div class="card info">
+  <p><strong>L1 患者随身端 —— 原始数据层（全自动）。</strong>一台旧手机挂胸前，网页只有<strong>一个按钮：长按开启录音，再长按关闭</strong>——患者随时有权拒绝被录，这个设计本身就是伦理答辩的王牌。开启时 Web Speech API 在手机<strong>本地</strong>把对话连续转成文字（患者和任何人的对话都记），<strong>音频永不离开设备</strong>；文字攒批（每 5 分钟或一段对话结束）→ byLLM 一次性批量抽取，顺带拿到<strong>对话级衰退信号</strong>：同一个故事一次对话讲 3 遍、没认出来访的老朋友、答非所问。</p>
+  <p><strong>L2 家属/照护者端 —— 人类精修层（半自动）。</strong>家属和照护者注入自己的观察（语音/文字补录），并负责两种报告：① <strong>每日报告</strong>——全自动生成、自动存档；② <strong>交接报告</strong>——换班/交接时点一下，AI 起草，人逐条 review 确认后保存。人不生产流水账，只批准结论。</p>
+  <p><strong>L3 医生层 —— 临床报告层。</strong>就诊前一键生成医生版报告：完整病程趋势 + 关键事件时间轴 + 数据来源标注。（医生的专业化输入今天不做，进 roadmap——多一类角色 = 多一套表单和权限，demo 收益低。）</p>
+  <p><strong>Jac 加分点：每个节点带来源标签（L1 wearable / L2 human / L3 clinical）和相应置信度权重</strong>——"分层数据质量"直接建模成 typed 图的属性，评委一眼看到这是图原生设计，不是套壳。整套系统 = 患者的<strong>基于时间轴的记录与报告系统</strong>：原始 → 精修 → 临床。</p>
+  <p><strong>Demo 数据 = 预置 7 天种子数据</strong>（埋好衰退弧线）+ <strong>一个现场活镜头</strong>：队友戴着手机说"Emma 周日要来看你"，大屏图谱当场长出新节点。历史靠种子，魔法靠这 10 秒。</p>
+</div>
+
+<div class="card bad">
+  <p><strong>摄像头方案（胸前拍照 / 远程监控式）今天不做，pitch 里只当 roadmap 提一句。</strong>三个理由：① 评委答辩必炸——对无法自主同意的患者做连续拍摄，还会拍到访客和其他患者，"监控摄像头"framing 正中 surveillance 质疑的靶心；音频挂坠是"陪伴"，摄像头是"监视"，故事光谱完全不同。② 技术成本翻倍（vision 模型、照片管道），demo 收益却几乎为零——活镜头用语音已经足够震撼。③ 手机浏览器锁屏后台会被杀，"网页当可穿戴"本身只在亮屏时可靠，demo 够用，加摄像头只是加故障点。</p>
+</div>
+
+<div class="card good">
+  <p><strong>执行计划：功能闪电战（队内定稿——先全功能、后 UI）：</strong></p>
+  <table>
+    <tr><th>阶段</th><th>内容</th><th>纪律</th></tr>
+    <tr><td><strong>P0 地基</strong>（15-20 分钟）</td><td>全队定死再开工：图 schema（node/edge 类型+来源标签）、walker 名单、API 契约（endpoint 形状）、两种报告的 JSON 格式</td><td>没有契约就并行 = 4 个 agent 产 4 个互不兼容的模块</td></tr>
+    <tr><td><strong>P1 骨架闪电战</strong>（~1 小时）</td><td>多 agent / workflow 并行把<strong>三层全部功能</strong>一把实现：L1 长按录音页、L2 控制台+双报告、L3 医生报告、4 walker、byLLM 抽取。<strong>第一小时内就部署 jachammer</strong>（平台是最大未知数）</td><td>目标 = 端到端数据流跑通，每个功能先 stub 通再加深，不追求任何一个做深</td></tr>
+    <tr><td><strong>P2 测试+修功能</strong></td><td>全队真机测一轮 → 修补清单<strong>按 1:30 分镜排优先级</strong> → 补种子数据</td><td>demo 路径上的 bug 优先于一切新功能</td></tr>
+    <tr><td><strong>P3 UI 调整</strong>（最后）</td><td>颜色、排版、文案打磨</td><td>⚠️ D3 图可视化和聚光灯回放<strong>算功能不算 UI</strong>（Best Demo 的配方），P1 就要有骨架版</td></tr>
+    <tr><td><strong>不做（roadmap 一句话）</strong></td><td>摄像头/拍照、锁屏后台、native app、医生专业输入、多患者管理</td><td>有人想加 = 指着这行拒绝</td></tr>
+  </table>
+  <p class="muted">Web Speech API 兼容性注意：Chrome（桌面/Android）最稳，iOS Safari 挑剔——demo 用 Android 或一台 Chrome 笔记本竖屏模拟手机，别赌 iPhone。</p>
+</div>
+
+<svg viewBox="0 0 840 344" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CareGraph data flow">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a8fa3"/></marker></defs>
+  <text x="20" y="26" font-size="15" font-weight="700" fill="#1a1a2e">数据流 Data Flow — 自动收集为主，人只出现在确认环节</text>
+
+  <rect x="16" y="44" width="192" height="118" rx="8" fill="#f3edff" stroke="#9c6ade" stroke-width="2"/>
+  <text x="112" y="65" font-size="13" font-weight="700" text-anchor="middle" fill="#6b3fa0">L1 患者随身端（全自动）</text>
+  <text x="112" y="84" font-size="11.5" text-anchor="middle" fill="#333">旧手机挂胸前 · 长按开/关录音</text>
+  <text x="112" y="100" font-size="11.5" text-anchor="middle" fill="#333">本地转文字 · 音频不出设备</text>
+  <text x="112" y="116" font-size="11.5" text-anchor="middle" fill="#333">攒批上传 → 对话级衰退信号</text>
+  <text x="112" y="138" font-size="10.5" text-anchor="middle" fill="#946c00">患者可随时关 = 知情权设计</text>
+
+  <rect x="16" y="196" width="192" height="96" rx="8" fill="#eef4ff" stroke="#4285f4" stroke-width="1.5"/>
+  <text x="112" y="217" font-size="13" font-weight="700" text-anchor="middle" fill="#1a56b0">L2 家属/照护者端（精修）</text>
+  <text x="112" y="236" font-size="11.5" text-anchor="middle" fill="#333">观察补录（语音/文字）</text>
+  <text x="112" y="252" font-size="11.5" text-anchor="middle" fill="#333">日报自动存 + 交接报告人审</text>
+  <text x="112" y="274" font-size="10.5" text-anchor="middle" fill="#946c00">人不写流水账，只批准结论</text>
+
+  <line x1="208" y1="103" x2="256" y2="148" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="208" y1="244" x2="256" y2="186" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <rect x="260" y="120" width="150" height="92" rx="8" fill="#f3edff" stroke="#9c6ade" stroke-width="1.5"/>
+  <text x="335" y="144" font-size="13.5" font-weight="700" text-anchor="middle" fill="#6b3fa0">byLLM 批量抽取</text>
+  <text x="335" y="164" font-size="11" font-family="Menlo, monospace" text-anchor="middle" fill="#333">extract(batch)</text>
+  <text x="335" y="178" font-size="11" font-family="Menlo, monospace" text-anchor="middle" fill="#333">→ list[CareEvent]</text>
+  <text x="335" y="198" font-size="11" text-anchor="middle" fill="#666">对话文本 → 类型化事件</text>
+
+  <line x1="410" y1="166" x2="452" y2="166" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <rect x="456" y="104" width="170" height="116" rx="8" fill="#e9f7ef" stroke="#34a853" stroke-width="1.5"/>
+  <text x="541" y="128" font-size="13.5" font-weight="700" text-anchor="middle" fill="#1e7e34">记忆图 Memory Graph</text>
+  <text x="541" y="146" font-size="11.5" text-anchor="middle" fill="#333">Jac 持久图 · 零 DB 代码</text>
+  <text x="541" y="164" font-size="11" text-anchor="middle" fill="#555">节点: Person/Fact/Event/</text>
+  <text x="541" y="178" font-size="11" text-anchor="middle" fill="#555">RepeatQuestion/Confusion</text>
+  <text x="541" y="196" font-size="11" text-anchor="middle" fill="#555">边: Remembers/Forgot/Asked</text>
+  <text x="541" y="210" font-size="11" text-anchor="middle" fill="#555">全部带时间戳+置信度</text>
+
+  <line x1="626" y1="120" x2="660" y2="66" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="626" y1="150" x2="660" y2="137" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="626" y1="180" x2="660" y2="209" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="626" y1="206" x2="660" y2="280" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar)"/>
+
+  <rect x="664" y="36" width="160" height="58" rx="8" fill="#fff" stroke="#4285f4" stroke-width="1.5"/>
+  <text x="744" y="57" font-size="12.5" font-weight="700" text-anchor="middle" fill="#1a56b0">① 问答</text>
+  <text x="744" y="74" font-size="11" text-anchor="middle" fill="#555">RecallWalker 遍历</text>
+  <text x="744" y="87" font-size="11" text-anchor="middle" fill="#555">答案附图路径引用</text>
+
+  <rect x="664" y="108" width="160" height="58" rx="8" fill="#fff" stroke="#fbbc04" stroke-width="1.5"/>
+  <text x="744" y="129" font-size="12.5" font-weight="700" text-anchor="middle" fill="#946c00">② 衰退报警（自动）</text>
+  <text x="744" y="146" font-size="11" text-anchor="middle" fill="#555">DriftWalker 巡逻</text>
+  <text x="744" y="159" font-size="11" text-anchor="middle" fill="#555">本周 vs 基线 → 报警</text>
+
+  <rect x="664" y="180" width="160" height="58" rx="8" fill="#fff" stroke="#34a853" stroke-width="1.5"/>
+  <text x="744" y="201" font-size="12.5" font-weight="700" text-anchor="middle" fill="#1e7e34">③ 双报告（L2）</text>
+  <text x="744" y="218" font-size="11" text-anchor="middle" fill="#555">日报：全自动存档</text>
+  <text x="744" y="231" font-size="11" text-anchor="middle" fill="#555">交接：AI 起草→人审保存</text>
+
+  <rect x="664" y="252" width="160" height="58" rx="8" fill="#fff" stroke="#9c6ade" stroke-width="1.5"/>
+  <text x="744" y="273" font-size="12.5" font-weight="700" text-anchor="middle" fill="#6b3fa0">④ 医生报告（L3）</text>
+  <text x="744" y="290" font-size="11" text-anchor="middle" fill="#555">就诊前一键生成</text>
+  <text x="744" y="303" font-size="11" text-anchor="middle" fill="#555">病程趋势+事件时间轴</text>
+
+  <text x="20" y="332" font-size="11" fill="#888">Demo：预置 7 天种子数据（标注 simulated）打底 + 现场活镜头（对手机说一句话，图谱当场长节点；批量窗口缩到 ~10 秒）</text>
+</svg>
+
+<h2>架构（分层，谁写哪层见分工表）</h2>
+
+<svg viewBox="0 0 840 442" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CareGraph architecture layers">
+  <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a8fa3"/></marker></defs>
+  <text x="20" y="26" font-size="15" font-weight="700" fill="#1a1a2e">系统架构 Architecture</text>
+
+  <rect x="16" y="42" width="808" height="88" rx="8" fill="#eef4ff" stroke="#4285f4" stroke-width="1.5"/>
+  <text x="30" y="64" font-size="13" font-weight="700" fill="#1a56b0">前端 Frontend — .cl.jac（Jac 编译出 React，算进 40% Jac 配额）＋ 患者随身页（T2：大按钮 + Web Speech + 攒批 POST）</text>
+  <rect x="30" y="76" width="186" height="42" rx="6" fill="#fff" stroke="#b9cdf5"/>
+  <text x="123" y="94" font-size="12" text-anchor="middle" fill="#333">记忆图可视化 D3</text>
+  <text x="123" y="110" font-size="11" text-anchor="middle" fill="#666">聚光灯回放（抄 CONSILIUM）</text>
+  <rect x="226" y="76" width="186" height="42" rx="6" fill="#fff" stroke="#b9cdf5"/>
+  <text x="319" y="94" font-size="12" text-anchor="middle" fill="#333">趋势 + 报警面板</text>
+  <text x="319" y="110" font-size="11" text-anchor="middle" fill="#666">重复提问 / 置信度曲线</text>
+  <rect x="422" y="76" width="186" height="42" rx="6" fill="#fff" stroke="#b9cdf5"/>
+  <text x="515" y="94" font-size="12" text-anchor="middle" fill="#333">简报 review 卡</text>
+  <text x="515" y="110" font-size="11" text-anchor="middle" fill="#666">AI 起草，逐条确认/驳回</text>
+  <rect x="618" y="76" width="192" height="42" rx="6" fill="#fff" stroke="#b9cdf5"/>
+  <text x="714" y="94" font-size="12" text-anchor="middle" fill="#333">医生报告（只读）</text>
+  <text x="714" y="110" font-size="11" text-anchor="middle" fill="#666">同一份数据，换个版式</text>
+
+  <line x1="420" y1="130" x2="420" y2="152" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar2)"/>
+
+  <rect x="16" y="156" width="808" height="100" rx="8" fill="#fff8e1" stroke="#fbbc04" stroke-width="1.5"/>
+  <text x="30" y="178" font-size="13" font-weight="700" fill="#946c00">Walker 议会 — Jac 一等公民 agent，每个有名字有分工（评分点：Depth of Agentic Behavior）</text>
+  <rect x="30" y="190" width="180" height="52" rx="6" fill="#fff" stroke="#e8cf85"/>
+  <text x="120" y="210" font-size="12" font-weight="600" text-anchor="middle" fill="#333">IngestWalker</text>
+  <text x="120" y="227" font-size="11" text-anchor="middle" fill="#666">种植记忆节点、连边去重</text>
+  <rect x="226" y="190" width="180" height="52" rx="6" fill="#fff" stroke="#e8cf85"/>
+  <text x="316" y="210" font-size="12" font-weight="600" text-anchor="middle" fill="#333">RecallWalker</text>
+  <text x="316" y="227" font-size="11" text-anchor="middle" fill="#666">确定性遍历答题（可解释）</text>
+  <rect x="422" y="190" width="180" height="52" rx="6" fill="#fff" stroke="#e8cf85"/>
+  <text x="512" y="210" font-size="12" font-weight="600" text-anchor="middle" fill="#333">DriftWalker</text>
+  <text x="512" y="227" font-size="11" text-anchor="middle" fill="#666">对比时间窗，找衰退信号</text>
+  <rect x="618" y="190" width="192" height="52" rx="6" fill="#fff" stroke="#e8cf85"/>
+  <text x="714" y="210" font-size="12" font-weight="600" text-anchor="middle" fill="#333">HandoffWalker</text>
+  <text x="714" y="227" font-size="11" text-anchor="middle" fill="#666">汇总本班事件 → 简报</text>
+
+  <line x1="420" y1="256" x2="420" y2="278" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar2)"/>
+
+  <rect x="16" y="282" width="528" height="66" rx="8" fill="#e9f7ef" stroke="#34a853" stroke-width="1.5"/>
+  <text x="30" y="306" font-size="13" font-weight="700" fill="#1e7e34">持久记忆图 — typed nodes / edges</text>
+  <text x="30" y="326" font-size="11.5" fill="#555">语言自带持久化：不写任何数据库代码（评分点：Use of Jac）</text>
+
+  <rect x="560" y="282" width="264" height="66" rx="8" fill="#f3edff" stroke="#9c6ade" stroke-width="1.5"/>
+  <text x="692" y="304" font-size="13" font-weight="700" text-anchor="middle" fill="#6b3fa0">byLLM（只在边界）</text>
+  <text x="692" y="322" font-size="11" text-anchor="middle" fill="#555">进=抽取事件 / 出=温和措辞</text>
+  <text x="692" y="337" font-size="11" text-anchor="middle" fill="#555">Claude / Gemini 可换（sponsor 奖）</text>
+
+  <line x1="420" y1="348" x2="420" y2="372" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar2)"/>
+
+  <rect x="16" y="376" width="808" height="48" rx="8" fill="#fde8e6" stroke="#ea4335" stroke-width="1.5"/>
+  <text x="420" y="396" font-size="13" font-weight="700" text-anchor="middle" fill="#b3261e">部署 jachammer.ai（提交要求 + 评分项 + $500 Best JacHammer）· 兜底: jac start 本地</text>
+  <text x="420" y="414" font-size="11.5" text-anchor="middle" fill="#8a4540">14:00 前必须试通 —— 流程没公开文档，抓 mentor / Discord #ask-an-organizer 问</text>
+</svg>
+
+<div class="card warn">
+  <strong>核心设计原则（评委会问，全队口径一致）：</strong>医疗判断<strong>不交给 LLM</strong>。衰退检测 = DriftWalker 在图上数边、比时间窗（确定性、可复现、可指出依据哪条边）；byLLM 只做两端翻译。一句话回答"AI 误诊怎么办"：<em>"我们不诊断，我们只把照护者自己记下的事实变得可见；每个报警都能点开看是哪几条记录触发的。"</em>
+</div>
+
+<h2>奖项目标（冲什么、不冲什么、为什么）</h2>
+<table>
+  <tr><th>冲</th><th>奖金</th><th>凭什么拿</th></tr>
+  <tr><td><strong>Social Impact 主赛道</strong></td><td class="money">$1,500 / $800</td><td>赛道简介明写 healthcare/accessibility；医疗+弱势群体 = 上届最高产获奖域；有情感钩子 + 硬数字（690 万患者/1100 万照护者）。</td></tr>
+  <tr><td><strong>Best Use of Jac</strong></td><td class="money">$400</td><td>Checklist 全踩：4 具名 walker ✓ typed 图+自动持久化 ✓ byLLM typed returns ✓ 确定性遍历+LLM 在边界 ✓ .cl.jac 全栈 ✓ walker :pub 自动 REST ✓。认真竞争者估计个位数。</td></tr>
+  <tr><td><strong>Best JacHammer</strong></td><td class="money">$500</td><td>部署上去就有门票；大多数队嫌麻烦不部。顺带给主赛道加分（部署写进了评分）。</td></tr>
+  <tr><td>Sponsor 奖（机会型）</td><td>现场公布</td><td>byLLM 后端换 Gemini 可能就是 DeepMind 奖门票，成本一行配置。听 briefing 规则再决定。</td></tr>
+</table>
+<table>
+  <tr><th>不冲</th><th>原因</th></tr>
+  <tr><td>Agentic AI（$2,000/$1,000）</td><td>钱最多 = 人最挤（预计过半队伍）。且上届冠军 GraphClaw 就是记忆图助理——在这个赛道我们有"评委见过了"的撞车感，换到 Social Impact 反而是新题材。目标是最大化拿奖<strong>概率</strong>，不是最大化单奖金额。</td></tr>
+  <tr><td>Fintech/Open</td><td>故事里没有钱的角度，硬凹会稀释 pitch；"Open 什么都收"意味着它是第二拥挤的池子。</td></tr>
+  <tr><td>AI for Defense（$500）</td><td>老人照护 ≠ defense，扭曲题材得不偿失。唯一例外：briefing 若把 defense 定义得很宽（如 civilian safety/resilience），提交时顺手勾选，零额外工作。</td></tr>
+</table>
+
+<h2>分工 &amp; 时间表（现在 11:30，剩 7.5 小时）</h2>
+<table>
+  <tr><th>人</th><th>负责</th><th>产出</th></tr>
+  <tr><td><strong>A（Jac 核心）</strong></td><td>图 schema + 4 个 walker</td><td>node/edge 定义；ingest→recall→drift→handoff 闭环；walker 标 <code>:pub</code> 自动出 REST</td></tr>
+  <tr><td><strong>B（LLM 层）</strong></td><td>byLLM 抽取质量 + 种子数据</td><td><code>extract()</code> 的类型设计与调优；20 条 7 天种子记录（埋衰退弧线）；byLLM 翻车时切直连 API 的 fallback</td></tr>
+  <tr><td><strong>C（前端）</strong></td><td>.cl.jac 页面 + D3 图可视化</td><td>五个页面 P1 全铺骨架：图谱（聚光灯回放）/趋势报警/简报 review 卡/医生报告/患者随身页（长按录音 + Web Speech + 攒批 POST）</td></tr>
+  <tr><td><strong>D（交付）</strong></td><td>jachammer 部署 + Devpost + 视频</td><td>14:00 前部署试通；17:50 草稿；18:40 前 1:30 视频；Devpost 描述明写用了哪些 Jac 特性</td></tr>
+</table>
+<p class="muted">2-3 人版：合并 B 入 A，D 的活 17:00 起全员轮流。solo 版：按 A→B→C→D 顺序做，C 砍到只剩图可视化一个视图。</p>
+<table>
+  <tr><th>时间</th><th>里程碑</th></tr>
+  <tr><td>12:00</td><td><strong>P0 地基定死</strong>：图 schema、walker 名单、API 契约、报告 JSON 格式；repo 首 commit</td></tr>
+  <tr><td>13:15</td><td><strong>P1 收工</strong>：三层全功能骨架端到端跑通（多 agent 并行）；jachammer 首次部署已试</td></tr>
+  <tr><td>14:00</td><td><strong>P2 开跑</strong>：全队真机测完一轮，修补清单按 1:30 分镜排好优先级</td></tr>
+  <tr><td>16:00</td><td>功能完善收工；种子数据灌入；byLLM 若翻车已切直连 API</td></tr>
+  <tr><td>17:00</td><td><strong>P3 UI 调整完</strong>；活镜头彩排（Android/Chrome，批量窗口调到 ~10 秒）</td></tr>
+  <tr><td class="deadline">17:50</td><td><strong>Devpost 草稿（必交）</strong></td></tr>
+  <tr><td>18:40</td><td>1:30 视频录完；之后只修 bug 不加功能</td></tr>
+  <tr><td class="deadline">19:15</td><td>提交。之后现场 4 分钟 demo = 下面分镜放慢版 + 多一轮提问互动</td></tr>
+</table>
+
+<div class="card good">
+  <strong>1:30 视频分镜（先拍板这个，所有功能为它服务）：</strong>
+  <table>
+    <tr><th>时间</th><th>镜头</th></tr>
+    <tr><td>0:00–0:20</td><td>数字开场：690 万患者、1100 万照护者。"没有人能回答：妈妈比上个月忘得更快了吗？"</td></tr>
+    <tr><td>0:20–0:40</td><td><strong>钱镜头（活的）</strong>：队友胸前挂着手机说"Emma 周日来看你"→ 大屏图谱当场长出 Emma 节点和 Visit 事件</td></tr>
+    <tr><td>0:40–1:00</td><td>控制台提问"她记得 Emma 要来吗？"→ 聚光灯沿图遍历发亮 → 答案弹出并附证据路径</td></tr>
+    <tr><td>1:00–1:15</td><td>DriftWalker 报警卡："重复提问 3 次/天 → 11 次/天"→ 照护者点 confirm，交接简报生成</td></tr>
+    <tr><td>1:15–1:30</td><td>医生趋势页一扫而过 → tagline："See what she still remembers — and know the moment it starts to fade."</td></tr>
+  </table>
+</div>
+
+<h2>开工前必须统一的 7 件事（你没想到的都在这）</h2>
+<div class="card info">
+  <ol>
+    <li><strong>Demo 脚本先行</strong>：先写 1:30 视频脚本，再决定做什么功能。不在 demo 路径上的功能一律不做。</li>
+    <li><strong>种子数据 = 情感弹药</strong>：7 天混合语料（随身端对话转写片段 + 交接补录），埋好衰退弧线——第 5 天开始叫错孙女的名字、同一个故事一次对话里讲 3 遍。B 花 30 分钟精心写，值。</li>
+    <li><strong>伦理答辩预案</strong>（评委必问）："这是监控吗？"→ ① 音频在设备本地转文字，原始录音不上传不保存；② 佩戴有明显录音标识，访客可见；③ 家属/监护人（POA）授权；④ AI 只起草、人确认，报警是提示不是诊断（不碰医疗器械红线）；⑤ 可私有部署。</li>
+    <li><strong>合规 checklist</strong>：repo 公开且首 commit 在 10:45 后 ✓ 代码 ≥40% Jac（.cl.jac 前端帮大忙）✓ star jac repo（全队都去点）✓ 视频 ≤1:30 ✓。</li>
+    <li><strong>风险 + fallback</strong>：byLLM/jac-scale 有已知 runtime bug（上届 Persist 踩过，直连 API 绕过照样获奖）；jachammer 无公开文档 → 14:00 前问 mentor；Jac 语法生 → 用 <a href="https://jac-gpt.jaseci.org">jac-gpt</a> + Discord，只用文档里有的特性，别赌冷门语法。</li>
+    <li><strong>明确不做</strong>：摄像头/拍照、锁屏后台运行、native app、登录/多租户、医生专业输入、真实患者数据。有人想加 = 指着执行计划表最后一行拒绝。</li>
+    <li><strong>"完成"的定义</strong>：18:40 时哪怕一半功能是 stub，1:30 视频里的路径必须丝滑。视频路径神圣不可侵犯，其他一切可牺牲。</li>
+  </ol>
+</div>
+
+<h2>队友上手资源（开工前人手一份）</h2>
+<div class="card info">
+  <ul>
+    <li>安装与教程：<a href="https://docs.jaseci.org">docs.jaseci.org</a>（quick-guide → install；jac_book 有分章教程）· 官网 <a href="https://jaclang.org">jaclang.org</a></li>
+    <li>问语法最快：<a href="https://jac-gpt.jaseci.org">jac-gpt.jaseci.org</a>（官方 AI 助手）· Discord <code>#ninjaclaw-yap-room</code>（技术）/ <code>#ask-an-organizer</code>（jachammer 部署流程）</li>
+    <li><a href="https://github.com/jaseci-labs/jac">github.com/jaseci-labs/jac</a> —— <strong>全队每人都去 star</strong>（提交硬性要求）</li>
+    <li>byLLM 需要 LLM API key（Anthropic / Gemini 任一；briefing 说了 sponsor 奖规则再定用哪家）</li>
+    <li>参考获奖项目代码：<a href="https://github.com/chinnuteja/CONSILIUM">CONSILIUM</a>（聚光灯回放）· <a href="https://devpost.com/software/pharmagraph">PharmaGraph</a>（D3 力导向图）</li>
+  </ul>
+</div>
+
+<p class="muted">依据：往届 50 条获奖记录分析（GraphClaw=记忆图冠军先例；CONSILIUM=聚光灯回放；PharmaGraph=D3 拿 Best Demo；Persist=byLLM fallback 先例）。完整策略报告见 jachacks-sf-strategy.html。</p>
+
+</body>
+</html>
