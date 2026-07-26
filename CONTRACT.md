@@ -66,7 +66,8 @@ or 0.7 (L1 wearable). DriftWalker decays `remembers.confidence` by 0.05/day with
 | `handoff_draft` | — | items since last confirmed handoff → `draft_report()` | `{report_id, items:[{id,text}], content}` |
 | `handoff_confirm` | `report_id: str, approved: list[str]` | keep approved items, mark confirmed | `{report_id, status}` |
 | `doctor_report` | — | full timeline: weekly signal counts, confidence trends, key events | `{content, weekly:[{week, repeat_q, confusions}], generated: ts}` |
-| `seed_load` | — | wipe non-Patient data, load seed_data.json through ingest pipeline WITHOUT llm (pre-extracted) | `{loaded: n}` |
+| `seed_load` | — | wipe non-Patient data, load the demo corpus through the ingest pipeline WITHOUT llm. Source of truth: `seed_corpus.py` (compiled into code — deploy packaging drops loose files); `seed_data.json` is the dev-time editable copy (regen module via scripts/gen_seed_corpus.py) | `{loaded: n}` |
+| `timeline` | — | full-content feed for the tiered-column UI: all Entries + Reports with untruncated text | `{entries:[{id,ts,source,text}], reports:[{id,kind,status,ts,content}], patient}` |
 
 `trace`/`path` node id lists power the frontend spotlight replay. Node ids: use the runtime's
 native jid — snapshot must use the same ids.
