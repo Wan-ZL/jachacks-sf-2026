@@ -132,7 +132,7 @@
   </div>
 </main>
 
-<footer>Demo data — simulated. No audio is stored — only text.</footer>
+<footer>Demo data — simulated. No audio is stored — only text. · Jac walkers on duty: Ingest · Recall · Drift · Critique · Handoff — the graph is the database.</footer>
 
 <script>
 const API = new URLSearchParams(location.search).get('api') || ((location.protocol.startsWith('http') && location.port !== '8080') ? location.origin : null) || localStorage.getItem('api') || 'http://localhost:8000';
@@ -318,8 +318,10 @@ async function doAsk() {
     card.style.display = 'block';
     document.getElementById('answerText').textContent = ans.answer || '(no answer)';
     const n = Array.isArray(ans.evidence) ? ans.evidence.length : 0;
+    const hops = Array.isArray(ans.path) ? ans.path.length : 0;
     document.getElementById('answerEvidence').textContent =
-      'evidence: ' + n + ' ' + (n === 1 ? 'entry' : 'entries');
+      'RecallWalker · ' + hops + '-node graph traversal · byLLM phrasing · evidence: '
+      + n + ' ' + (n === 1 ? 'entry' : 'entries');
     if (Array.isArray(ans.path) && ans.path.length) await runReplay(ans.path);
   } catch (e) {
     document.getElementById('answerCard').style.display = 'block';

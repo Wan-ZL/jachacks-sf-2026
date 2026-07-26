@@ -193,12 +193,25 @@
   <strong>核心设计原则（评委会问，全队口径一致）：</strong>医疗判断<strong>不交给 LLM</strong>。衰退检测 = DriftWalker 在图上数边、比时间窗（确定性、可复现、可指出依据哪条边）；byLLM 只做两端翻译。一句话回答"AI 误诊怎么办"：<em>"我们不诊断，我们只把照护者自己记下的事实变得可见；每个报警都能点开看是哪几条记录触发的。"</em>
 </div>
 
+<h2>官方评分表（rubric PDF 实锤，4 分钟 demo 就按这个打分）</h2>
+<div class="card bad">
+  <p><strong>资格红线：Use of Jac 必须 ≥3 分，否则失去一切获奖资格</strong>（原文 "You must meaningfully use Jac to qualify for any track or any prize"；1 分 = "NOT ELIGIBLE FOR PRIZES"）。</p>
+  <table>
+    <tr><th>评分项</th><th>权重</th><th>拿 5 分的标准（原文要义）</th></tr>
+    <tr><td><strong>Use of Jac</strong></td><td><strong>40%（双倍权重）</strong></td><td>"产品依赖 Jac，用得有深度或原创性：walkers、graph traversal、byLLM、agentic flows" —— 我们的架构逐字命中。<strong>此项最高分自动获得 Best JacHammer $400。</strong></td></tr>
+    <tr><td>Real-World Use Case</td><td>20%</td><td>"Name one person, not a market"——就说 Margaret 和照护者 Maria，一个窄而真的问题可以拿 5。</td></tr>
+    <tr><td>Technical Execution</td><td>20%</td><td>"一天之内雄心勃勃的范围干净落地"——三层系统 + 10 walker + 实时图，就按一天的标准展示。</td></tr>
+    <tr><td>Demo &amp; Story</td><td>20%</td><td>"完整、清晰、拿真实证据 demo"——现场跑，不放 slides。</td></tr>
+  </table>
+  <p><strong>4 分钟的官方处方（照做）：</strong>① 说清给谁用、他们今天什么在崩（Margaret/Maria 开场）；② <strong>现场跑核心流程，不要描述</strong>（长按说话→图生长→提问聚光灯→报警确认）；③ <strong>指着代码展示 Jac 跑在哪</strong>——开 repo 的 main.jac（800+ 行、10 个具名 walker），指 dashboard 页脚的 walker 名单和报警卡上的 "✓ CritiqueWalker" 徽章。</p>
+</div>
+
 <h2>奖项目标（冲什么、不冲什么、为什么）</h2>
 <table>
   <tr><th>冲</th><th>奖金</th><th>凭什么拿</th></tr>
   <tr><td><strong>Social Impact 主赛道</strong></td><td class="money">$1,500 / $800</td><td>赛道简介明写 healthcare/accessibility；医疗+弱势群体 = 上届最高产获奖域；有情感钩子 + 硬数字（690 万患者/1100 万照护者）。</td></tr>
   <tr><td><strong>Best Use of Jac</strong></td><td class="money">$400</td><td>Checklist 全踩：4 具名 walker ✓ typed 图+自动持久化 ✓ byLLM typed returns ✓ 确定性遍历+LLM 在边界 ✓ .cl.jac 全栈 ✓ walker :pub 自动 REST ✓。认真竞争者估计个位数。</td></tr>
-  <tr><td><strong>Best JacHammer</strong></td><td class="money">$400</td><td>官方定义原文："Use jachammer.ai to build and ship a working application"。部署<strong>非强制</strong>但官方明说 "not deploying can affect your judging"。我们 P2 起部署——首要动机其实是拿 HTTPS 地址（手机麦克风需要 secure context），奖是顺带。</td></tr>
+  <tr><td><strong>Best JacHammer</strong></td><td class="money">$400</td><td><strong>官方 rubric PDF 实锤改判</strong>："The highest score here [Use of Jac] also wins the Best JacHammer award" —— 这个奖 = Use of Jac 单项最高分自动获得，和部署平台无关。与主策略完全同向：Jac 深度拉满一箭双雕。部署 jachammer 平台的动机 = HTTPS（手机麦克风）+ guide 里的 "not deploying can affect your judging"。</td></tr>
   <tr><td>Sponsor 奖（机会型）</td><td>现场公布</td><td>byLLM 后端换 Gemini 可能就是 DeepMind 奖门票，成本一行配置。听 briefing 规则再决定。</td></tr>
 </table>
 <table>
@@ -248,7 +261,7 @@
     <li><strong>Demo 脚本先行</strong>：先写 1:30 视频脚本，再决定做什么功能。不在 demo 路径上的功能一律不做。</li>
     <li><strong>种子数据 = 情感弹药</strong>：7 天混合语料（随身端对话转写片段 + 交接补录），埋好衰退弧线——第 5 天开始叫错孙女的名字、同一个故事一次对话里讲 3 遍。B 花 30 分钟精心写，值。</li>
     <li><strong>伦理答辩预案</strong>（评委必问）："这是监控吗？"→ 主口径按顺序：① 家属/监护人（POA）授权（对认知障碍患者这才是有效同意，别拿长按开关当同意）；② 佩戴有明显标识，访客可见；③ 系统不录制不存储任何音频，只保留识别文字（识别由浏览器引擎完成，Chrome 为云端识别——被问就如实说，roadmap 是 whisper.cpp 全本地）；④ AI 只起草、人确认，报警是提示不是诊断（不碰医疗器械红线）；⑤ 可私有部署。<strong>撞车答辩</strong>（评委说"记忆图 GraphClaw 做过了"）：一句话——"GraphClaw 帮 agent 记住事实，CareGraph 测量一个人遗忘的速度：同一批 walker 在时间窗上重跑做纵向退化检测，这是监测系统不是记忆助理。"</li>
-    <li><strong>合规 checklist</strong>：repo 公开且首 commit 在 10:45 后 ✓ 代码 ≥40% Jac（前端刻意保持轻量 vanilla JS 保护占比）✓ star jac repo（全队都去点）✓ 视频按 ≤90 秒制作（guide 没写上限，以 Devpost 表单为准，90 秒在任何上限下都安全）。<strong>⚠️ 官方原话"detailed rubric will be shared on Discord"——立刻去 Discord 拿细则</strong>，核对：Use of Jac 是否有最低分门槛、视频长度、Best JacHammer 判法。</li>
+    <li><strong>合规 checklist</strong>：repo 公开且首 commit 在 10:45 后 ✓ 代码 ≥40% Jac（前端刻意保持轻量 vanilla JS 保护占比）✓ star jac repo（全队都去点）✓ 视频按 ≤90 秒制作（guide 没写上限，以 Devpost 表单为准，90 秒在任何上限下都安全）✓ rubric 已拿到（见上方评分表卡片——Use of Jac ≥3 是资格线，40% 双倍权重）。</li>
     <li><strong>风险 + fallback</strong>：① byLLM runtime bug（上届 Persist 踩过，直连 API 绕过照样获奖；Best Demo 得主 PharmaGraph 甚至 demo 路径全用确定性逻辑）→ 我们留了 CAREGRAPH_MOCK_LLM 保险丝；② <strong>Web Speech 要 secure context</strong>——手机连局域网 http 拿不到麦克风，方案 = cloudflared HTTPS 隧道 / jachammer 部署地址 / 兜底在演示笔记本 localhost 开 patient.html（localhost 算 secure context）；③ 浏览器连续识别会自停，代码已做 onend 自动重启；④ Jac 语法只用 docs/recon 里验证过的写法 + <code>jac guide</code> 离线手册，别赌冷门语法。</li>
     <li><strong>明确不做</strong>：摄像头/拍照、锁屏后台运行、native app、登录/多租户、医生专业输入、真实患者数据。有人想加 = 指着执行计划表最后一行拒绝。</li>
     <li><strong>"完成"的定义</strong>：18:40 时哪怕一半功能是 stub，1:30 视频里的路径必须丝滑。视频路径神圣不可侵犯，其他一切可牺牲。</li>
