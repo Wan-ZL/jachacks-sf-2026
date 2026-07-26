@@ -32,3 +32,7 @@ typescript = "^5.3.3"
 # NOTE: do NOT pip-install byllm here — the hosted runtime bundles byLLM in
 # jaclang core, and its compiler cannot parse the legacy pip package.
 # Model loading is runtime-adaptive in llm_backend.py.
+
+[jacpack]
+name = 'jachacks-sf-2026-v2'
+description = 'Jac IDE snapshot for jachacks-sf-2026-v2'
