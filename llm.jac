@@ -112,7 +112,12 @@ def extract(batch_text: str, today: str) -> ExtractResult {
     if _mock_on() {
         return _heuristic_extract(batch_text);
     }
-    return _llm_extract(batch_text, today);
+    try {
+        return _llm_extract(batch_text, today);
+    } except Exception {
+        # live LLM unavailable (no key / outage) — demo must not 500
+        return _heuristic_extract(batch_text);
+    }
 }
 
 def phrase_answer(question: str, facts: list[str]) -> str {
@@ -122,7 +127,11 @@ def phrase_answer(question: str, facts: list[str]) -> str {
         }
         return "Here is what I know: " + "; ".join(facts) + ".";
     }
-    return _llm_phrase_answer(question, facts);
+    try {
+        return _llm_phrase_answer(question, facts);
+    } except Exception {
+        return "Here is what I know: " + "; ".join(facts) + ".";
+    }
 }
 
 def draft_report(kind: str, items: list[str]) -> str {
@@ -133,5 +142,13 @@ def draft_report(kind: str, items: list[str]) -> str {
         }
         return "\n".join(lines);
     }
-    return _llm_draft_report(kind, items);
+    try {
+        return _llm_draft_report(kind, items);
+    } except Exception {
+        lines = [f"{kind} report — {len(items)} items."];
+        for it in items[:10] {
+            lines.append(f"- {it}");
+        }
+        return "\n".join(lines);
+    }
 }
