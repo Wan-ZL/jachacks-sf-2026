@@ -16,6 +16,7 @@ include llm;
 import re;
 import os;
 import json;
+import from datetime { datetime, timedelta }
 
 glob STOPWORDS: list[str] = [
     "the", "a", "an", "is", "are", "was", "were", "does", "do", "did", "she", "he",
@@ -427,7 +428,6 @@ walker:pub seed_load {
 # "now" is always the newest ts in the graph (corpus time), never the wall clock,
 # so the 7-day simulated seed behaves the same on any demo day.
 
-import from datetime { datetime, timedelta }
 
 
 # Shared drift analysis: window compare + confidence decay. Used by DriftWalker
