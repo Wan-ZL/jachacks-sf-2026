@@ -61,8 +61,7 @@
 </div>
 
 <script>
-const API = new URLSearchParams(location.search).get('api')
-  || localStorage.getItem('api') || 'http://localhost:8000';
+const API = new URLSearchParams(location.search).get('api') || ((location.protocol.startsWith('http') && location.port !== '8080') ? location.origin : null) || localStorage.getItem('api') || 'http://localhost:8000';
 const WALKER = n => API + '/walker/' + n;
 async function callWalker(name, body = {}) {
   const r = await fetch(WALKER(name), {

@@ -1,5 +1,0 @@
-# Minimal jac.toml — required by `jac start` in this cwd (env-verified.md gotcha #3).
-# byLLM model config lives in llm.jac (Model(model_name="claude-sonnet-4-6")), not here.
-[project]
-name = "caregraph"
-version = "0.1.0"

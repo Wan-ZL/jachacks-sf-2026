@@ -1,7 +1,9 @@
 # CareGraph backend entry - ALL walkers live in this served module.
 # (Walkers pulled in via `include` lose their :pub access tag under `jac start`
 #  and return 401 - verified empirically; type/def includes are unaffected.)
-# Serve: jac start main.jac --no_client -p 8000  (from backend/)
+# Serve from repo root: jac start main.jac --no_client -p 8000 (static frontend in assets/)
+
+import static_patch;  # fills jaclang 0.16.7 send_static_file gap (see file header)
 
 include schema;
 include llm;
