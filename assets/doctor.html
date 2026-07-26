@@ -71,12 +71,37 @@
 <script>
 const API = new URLSearchParams(location.search).get('api') || ((location.protocol.startsWith('http') && location.port !== '8080') ? location.origin : null) || localStorage.getItem('api') || 'http://localhost:8000';
 const WALKER = n => API + '/walker/' + n;
+const CG_IDENT = { type: 'username', value: 'caregraph-demo' };
+const CG_CRED = { type: 'password', password: 'caregraph-demo-2026' };
+const CG_TKEY = 'cg_token:' + API;
+async function cgToken(force) {
+  if (!force) { const t = localStorage.getItem(CG_TKEY); if (t) return t; }
+  try {
+    await fetch(API + '/user/register', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identities: [CG_IDENT], credential: CG_CRED }) });
+  } catch (e) {}
+  try {
+    const r = await fetch(API + '/user/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity: CG_IDENT, credential: CG_CRED }) });
+    const j = await r.json();
+    const t = (j.data && j.data.token) || j.token || '';
+    if (t) { localStorage.setItem(CG_TKEY, t); return t; }
+  } catch (e) {}
+  return '';
+}
+function cgHeaders(tok) {
+  return Object.assign({ 'Content-Type': 'application/json' }, tok ? { 'Authorization': 'Bearer ' + tok } : {});
+}
 async function callWalker(name, body = {}) {
-  const r = await fetch(WALKER(name), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  // Authenticated by default: the hosted sandbox rejects anonymous graph
+  // writes; a per-device auto-registered demo user gives every page (and the
+  // phone) the same server-side root. 401 = stale token -> re-auth once.
+  let tok = await cgToken(false);
+  let r = await fetch(WALKER(name), { method: 'POST', headers: cgHeaders(tok), body: JSON.stringify(body) });
+  if (r.status === 401) {
+    tok = await cgToken(true);
+    r = await fetch(WALKER(name), { method: 'POST', headers: cgHeaders(tok), body: JSON.stringify(body) });
+  }
   if (!r.ok) throw new Error(name + ' ' + r.status);
   const j = await r.json();
   const rep=(j.data&&j.data.reports)||j.reports; return rep?(rep[0]??j):j;

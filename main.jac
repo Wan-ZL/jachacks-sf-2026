@@ -354,9 +354,14 @@ walker:pub seed_load {
     has reports: list[dict] = [];
 
     can go with Root entry {
-        visit [-->[?:Patient]] else {
-            patient = (here ++> Patient(name="Margaret"))[0] as Patient;
-            visit patient;
+        try {
+            visit [-->[?:Patient]] else {
+                patient = (here ++> Patient(name="Margaret"))[0] as Patient;
+                visit patient;
+            }
+        } except Exception as exc {
+            import traceback;
+            report {"loaded": 0, "error": str(exc), "trace_tail": traceback.format_exc()[-900:]};
         }
     }
 
