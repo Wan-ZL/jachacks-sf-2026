@@ -1,0 +1,68 @@
+/* CareGraph shared styles */
+:root {
+  --gold: #f4b400;
+  --blue: #4285f4;
+  --green: #34a853;
+  --purple: #9c6ade;
+  --red: #ea4335;
+  --gray: #9aa0b4;
+  --ink: #1f2430;
+  --ink-2: #5b6270;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5em; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.15rem; }
+p { margin: 0 0 0.75em; }
+a { color: var(--blue); }
+
+.card {
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(20, 24, 40, 0.08), 0 1px 2px rgba(20, 24, 40, 0.05);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  display: inline-block;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 12px 22px;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--blue);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:hover { filter: brightness(1.06); }
+.btn:active { filter: brightness(0.94); }
+.btn:disabled { background: var(--gray); cursor: default; }
+.btn.secondary { background: var(--surface); color: var(--ink); border: 1px solid #d7dae2; }
+
+.muted { color: var(--ink-2); }
+
+footer.muted {
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 20px 12px 28px;
+}
