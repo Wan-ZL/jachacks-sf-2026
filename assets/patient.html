@@ -37,12 +37,17 @@
     opacity: 0; transition: opacity 0.5s;
   }
   #hint.show { opacity: 1; }
-  #lastline.interim { opacity: .55; font-style: italic; }
   #lastline {
     position: fixed; bottom: 64px; left: 0; right: 0; text-align: center;
-    padding: 0 24px; font-size: 14px; color: #baab90; font-style: italic;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding: 0 24px; color: #8a7a66;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
   }
+  #lastline .tl { font-size: 19px; line-height: 1.45; max-width: 720px; }
+  #lastline .tl.old4 { opacity: .28; }
+  #lastline .tl.old3 { opacity: .42; }
+  #lastline .tl.old2 { opacity: .60; }
+  #lastline .tl.old1 { opacity: .80; }
+  #lastline .tl.interim { opacity: .55; font-style: italic; color: #baab90; }
   #toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     background: #fffdf7; color: #4a7a5a; font-size: 13px;
@@ -76,11 +81,12 @@
     transition: opacity 0.3s;
   }
   #home:hover, #home:focus-visible { opacity: 1; }
+  #home.holding, #fallback button.holding { opacity: 1; transform: scale(.96); }
 </style>
 </head>
 <body>
 
-<a id="home" href="home.html">‹ CareGraph</a>
+<a id="home" href="home.html" title="Hold to go home">‹ CareGraph</a>
 
 <div id="toast">✓ remembered</div>
 
@@ -143,6 +149,20 @@ const LANG = qs.get('lang') || 'en-US';
 const btn = document.getElementById('bigbtn');
 const hint = document.getElementById('hint');
 const lastline = document.getElementById('lastline');
+// Rolling captions: last 4 final lines + the live interim line (5 max);
+// older lines fade upward and vanish.
+const tlFinals = [];
+function renderTranscript(interim) {
+  const finals = tlFinals.slice(interim && interim.trim() ? -4 : -5);
+  const parts = finals.map((l, i) => {
+    const age = finals.length - i;  // 1 = newest final
+    return '<div class="tl old' + age + '">' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>';
+  });
+  if (interim && interim.trim()) {
+    parts.push('<div class="tl interim">' + interim.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>');
+  }
+  lastline.innerHTML = parts.join('');
+}
 const toast = document.getElementById('toast');
 
 let recording = false;
@@ -201,12 +221,12 @@ function startRecognition() {
       const t = ev.results[i][0].transcript;
       if (ev.results[i].isFinal) {
         const line = t.trim();
-        if (line) { buffer.push(line); lastline.textContent = line; lastline.classList.remove('interim'); }
+        if (line) { buffer.push(line); tlFinals.push(line); }
       } else {
         interim += t;
       }
     }
-    if (interim.trim()) { lastline.textContent = interim.trim(); lastline.classList.add('interim'); }
+    renderTranscript(interim);
   };
   rec.onend = () => {
     // Chrome halts recognition periodically — restart while recording
@@ -269,13 +289,29 @@ if (!SR) {
     const v = ftext.value.trim();
     if (!v) return;
     buffer.push(v);
-    lastline.textContent = v;
+    tlFinals.push(v); renderTranscript('');
     ftext.value = '';
     ship();
   };
-  document.getElementById('fsend').addEventListener('click', send);
+  longPressify(document.getElementById('fsend'), send);  // anti-mistouch
   ftext.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 }
+
+// Anti-mistouch: every control on the patient page requires a LONG PRESS
+// (600ms) — including the home link and the fallback send button.
+function longPressify(el, action) {
+  if (!el) return;
+  let t = null;
+  const cancel = () => { if (t) { clearTimeout(t); t = null; el.classList.remove('holding'); } };
+  el.addEventListener('click', e => e.preventDefault());
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    el.classList.add('holding');
+    t = setTimeout(() => { cancel(); action(); }, 600);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, cancel));
+}
+longPressify(document.getElementById('home'), () => { location.href = 'home.html'; });
 </script>
 </body>
 </html>
