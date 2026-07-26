@@ -14,32 +14,60 @@
     font-size: 15px; line-height: 1.5; color: #2d3340; background: #f4f6f9;
     display: flex; flex-direction: column;
   }
+
+  /* ---------- header ---------- */
   header {
-    display: flex; align-items: center; gap: 16px; padding: 10px 20px;
+    display: flex; align-items: center; gap: 14px; padding: 10px 20px;
     background: #fff; border-bottom: 1px solid #e3e7ee; flex-wrap: wrap;
   }
   .brand { font-size: 20px; font-weight: 700; color: #1a2233; white-space: nowrap; }
-  .brand .dot { color: #f4b400; }
+  .brand .dot { color: var(--gold); }
   #patientName { color: #6b7280; font-weight: 500; white-space: nowrap; }
-  .askwrap { display: flex; gap: 8px; flex: 1; min-width: 260px; max-width: 560px; }
+  .askwrap { display: flex; gap: 8px; flex: 1; min-width: 240px; max-width: 620px; margin: 0 auto; }
   .askwrap input {
     flex: 1; padding: 10px 14px; font-size: 15px; border: 1px solid #d4dae4;
     border-radius: 10px; outline: none; background: #fafbfd;
   }
-  .askwrap input:focus { border-color: #4285f4; background: #fff; }
+  .askwrap input:focus { border-color: var(--blue); background: #fff; }
   button {
     padding: 10px 16px; font-size: 15px; font-weight: 600; border: none;
-    border-radius: 10px; background: #4285f4; color: #fff; cursor: pointer; min-height: 42px;
+    border-radius: 10px; background: var(--blue); color: #fff; cursor: pointer; min-height: 42px;
+    font-family: inherit; touch-action: manipulation;
   }
   button:hover { background: #3372df; }
   button:disabled { background: #b9c4d4; cursor: default; }
   button.ghost { background: #eef1f6; color: #37415a; }
   button.ghost:hover { background: #e2e7f0; }
-  .hlinks { display: flex; gap: 10px; align-items: center; margin-left: auto; }
-  .hlinks a { color: #4285f4; text-decoration: none; font-weight: 600; padding: 8px 4px; }
+  .hlinks { display: flex; gap: 12px; align-items: center; margin-left: auto; }
+  .hlinks a { color: var(--blue); text-decoration: none; font-weight: 600; padding: 8px 4px; }
   .hlinks a:hover { text-decoration: underline; }
-  main { flex: 1; display: flex; min-height: 0; }
-  #graphPane { width: 60%; position: relative; background: #fbfcfe; border-right: 1px solid #e3e7ee; }
+
+  /* ---------- alerts strip ---------- */
+  #alertStrip {
+    display: flex; align-items: center; gap: 10px; padding: 7px 20px;
+    background: #fffdf5; border-bottom: 1px solid #f0e8cf;
+    overflow-x: auto; white-space: nowrap; min-height: 42px;
+  }
+  #alertStrip .striplabel {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: #a08a3c; flex: none;
+  }
+  #alertsBody { display: flex; gap: 8px; align-items: center; }
+  .achip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px;
+    background: #fff; border: 1px solid #e8e2cd; border-radius: 999px;
+    font-size: 12.5px; color: #37415a; box-shadow: 0 1px 2px rgba(20,30,60,.04); flex: none;
+  }
+  .achip strong { font-weight: 700; }
+  .achip .rate { color: #5b6472; }
+  .achip .vok { color: var(--green); font-weight: 700; }
+  .achip .vplain { color: #8a93a4; }
+  .sev { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .chip-none { color: #8a93a4; font-size: 13px; }
+
+  /* ---------- main grid ---------- */
+  main { flex: 1; display: grid; grid-template-columns: 42% minmax(0, 1fr); min-height: 0; }
+  #graphPane { position: relative; background: #fbfcfe; border-right: 1px solid #e3e7ee; min-width: 0; }
   #graphPane svg { width: 100%; height: 100%; display: block; cursor: grab; }
   #legend {
     position: absolute; left: 12px; bottom: 12px; background: rgba(255,255,255,.92);
@@ -48,35 +76,160 @@
   }
   .lg { display: flex; align-items: center; gap: 5px; }
   .lg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  #sidebar { width: 40%; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-  .card {
-    background: #fff; border: 1px solid #e3e7ee; border-radius: 12px;
-    padding: 14px 16px; box-shadow: 0 1px 2px rgba(20,30,60,.04);
+
+  /* answer card floats over the graph */
+  #answerCard {
+    display: none; position: absolute; top: 12px; left: 12px; z-index: 6;
+    width: min(380px, calc(100% - 24px)); max-height: 55%; overflow-y: auto;
+    background: #fff; border: 1px solid #e3e7ee; border-left: 4px solid var(--purple);
+    border-radius: 12px; padding: 14px 16px; box-shadow: 0 6px 24px rgba(20,30,60,.14);
   }
-  .card h2 { margin: 0 0 10px; font-size: 15px; color: #1a2233; display: flex; align-items: center; gap: 8px; }
-  .muted { color: #8a93a4; font-size: 13px; }
-  #answerCard { display: none; border-left: 4px solid #9c6ade; }
+  #answerCard h2 { margin: 0 0 8px; font-size: 15px; color: #1a2233; }
   #answerText { white-space: pre-wrap; }
-  .alert { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f0f2f6; }
-  .alert:last-child { border-bottom: none; }
-  .sev { width: 10px; height: 10px; border-radius: 50%; flex: none; position: relative; top: 1px; }
-  .alert .kind { font-weight: 600; white-space: nowrap; }
-  .alert .counts { margin-left: auto; font-weight: 700; white-space: nowrap; font-size: 13px; color: #37415a; }
-  .item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; }
-  .item input { width: 18px; height: 18px; margin-top: 3px; }
+  #answerClose {
+    position: absolute; top: 8px; right: 8px; background: none; color: #9aa0b4;
+    padding: 2px 8px; min-height: 0; font-size: 15px; border-radius: 6px;
+  }
+  #answerClose:hover { background: #f0f2f6; color: #37415a; }
+
+  /* ---------- tier columns ---------- */
+  #tiers { display: flex; gap: 10px; padding: 12px; min-width: 0; min-height: 0; overflow: hidden; }
+  .tier {
+    flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; min-height: 0;
+    background: #fff; border: 1px solid #e3e7ee; border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(20,30,60,.04); overflow: hidden;
+  }
+  .tier .rail { display: none; }
+  .tier.collapsed { flex: 0 0 44px; cursor: pointer; }
+  .tier.collapsed .tier-head, .tier.collapsed .tier-tools, .tier.collapsed .tier-body { display: none; }
+  .tier.collapsed .rail {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 14px 0; height: 100%;
+  }
+  .rail .rail-title {
+    writing-mode: vertical-rl; font-weight: 700; font-size: 13px; color: #37415a;
+    letter-spacing: .03em;
+  }
+  .rail .rail-count {
+    background: #eef1f6; color: #37415a; font-size: 11px; font-weight: 700;
+    border-radius: 999px; padding: 2px 6px; min-width: 22px; text-align: center;
+  }
+  .tier-head {
+    display: flex; align-items: flex-start; gap: 8px; padding: 12px 12px 8px;
+    border-bottom: 1px solid #f0f2f6; flex: none;
+  }
+  .tier-head h3 {
+    margin: 0; font-size: 14px; color: #1a2233; display: flex; align-items: center; gap: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tier-head .cnt {
+    background: #eef1f6; color: #37415a; font-size: 11px; font-weight: 700;
+    border-radius: 999px; padding: 1px 7px;
+  }
+  .tier-head .cap { font-size: 11px; color: #9aa0b4; margin-top: 2px; white-space: nowrap; }
+  .collapse-btn {
+    margin-left: auto; background: none; color: #9aa0b4; padding: 2px 7px;
+    min-height: 0; font-size: 14px; border-radius: 6px; flex: none;
+  }
+  .collapse-btn:hover { background: #f0f2f6; color: #37415a; }
+  .tier-tools { padding: 8px 10px 4px; flex: none; }
+  .tier-tools input {
+    width: 100%; padding: 8px 11px; font-size: 13px; border: 1px solid #d4dae4;
+    border-radius: 9px; outline: none; background: #fafbfd;
+  }
+  .tier-tools input:focus { border-color: var(--blue); background: #fff; }
+  .tier-tools button { width: 100%; font-size: 13.5px; padding: 9px 10px; min-height: 40px; }
+  .tier-body { flex: 1; overflow-y: auto; padding: 8px 10px 12px; min-height: 0; }
+  .empty { color: #9aa0b4; font-size: 13px; padding: 10px 4px; }
+
+  /* ---------- cards ---------- */
+  .tcard {
+    position: relative; background: #fbfcfe; border: 1px solid #eceff5; border-radius: 10px;
+    padding: 9px 11px; margin-bottom: 8px; font-size: 13.5px; cursor: pointer;
+    transition: box-shadow .12s, border-color .12s;
+  }
+  .tcard:hover { border-color: #d9dfeb; box-shadow: 0 2px 6px rgba(20,30,60,.07); }
+  .thead { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; min-height: 20px; }
+  .thead .spacer { flex: 1; }
+  .thead .time { font-size: 11.5px; color: #8a93a4; white-space: nowrap; }
+  .thead .rtitle { font-weight: 700; font-size: 12.5px; color: #37415a; }
+  .badge {
+    font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+    color: #fff; white-space: nowrap;
+  }
+  .badge.l1 { background: var(--purple); }
+  .badge.l2 { background: var(--blue); }
+  .chip {
+    font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .chip.amber { background: #fdf3d7; color: #9a7b17; }
+  .chip.green { background: #e3f3e8; color: #1e7e3c; }
+  .xbtn {
+    background: none; color: #c3c9d6; padding: 0 5px; min-height: 0; font-size: 12px;
+    border-radius: 5px; line-height: 18px; flex: none;
+  }
+  .xbtn:hover { background: #f0f2f6; color: #5b6472; }
+  .tbody { color: #3c4454; word-break: break-word; }
+  .tbody.clamp3 {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .tcard.linkcard {
+    display: block; text-decoration: none; color: var(--blue); font-weight: 600;
+    background: #f6f9ff; border-color: #dbe6fb;
+  }
+  .tcard.linkcard:hover { border-color: var(--blue); }
+  .tcard.linkcard .muted { font-weight: 400; }
+  .item { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; cursor: pointer; }
+  .item input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
   .preview {
     background: #f8f9fc; border: 1px solid #eceff5; border-radius: 8px;
-    padding: 10px 12px; margin-top: 10px; font-size: 14px; max-height: 220px; overflow-y: auto;
+    padding: 9px 11px; margin-top: 8px; font-size: 13px; max-height: 180px; overflow-y: auto;
   }
-  .ok { color: #34a853; font-weight: 700; }
+  .muted { color: #8a93a4; font-size: 13px; }
+  .ok { color: var(--green); font-weight: 700; }
+
+  /* ---------- modal ---------- */
+  #modalOverlay {
+    position: fixed; inset: 0; background: rgba(15,20,35,.45); z-index: 50;
+    display: none; align-items: center; justify-content: center;
+  }
+  #modalOverlay.show { display: flex; }
+  #modalBox {
+    background: #fff; border-radius: 14px; width: min(680px, calc(100% - 48px));
+    max-height: 78vh; display: flex; flex-direction: column;
+    box-shadow: 0 12px 40px rgba(20,30,60,.28);
+  }
+  #modalHead {
+    display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+    border-bottom: 1px solid #f0f2f6;
+  }
+  #modalTitle { font-weight: 700; font-size: 15px; color: #1a2233; }
+  #modalClose {
+    margin-left: auto; background: none; color: #9aa0b4; padding: 4px 10px;
+    min-height: 0; font-size: 16px; border-radius: 8px;
+  }
+  #modalClose:hover { background: #f0f2f6; color: #37415a; }
+  #modalBody { padding: 16px 18px; overflow-y: auto; font-size: 14px; color: #3c4454; }
+
   footer {
     padding: 8px 20px; text-align: center; font-size: 12px; color: #9aa0b4;
     background: #fff; border-top: 1px solid #e3e7ee;
   }
-  @media (max-width: 860px) {
-    main { flex-direction: column; }
-    #graphPane, #sidebar { width: 100%; }
-    #graphPane { height: 55vh; }
+
+  @media (max-width: 1280px) {
+    main { grid-template-columns: 38% minmax(0, 1fr); }
+    #tiers { gap: 7px; padding: 8px; }
+    .tier-head { padding: 10px 9px 7px; }
+    .tier-head .cap { font-size: 10px; }
+    .tier-body { padding: 6px 7px 10px; }
+    .tcard { font-size: 13px; padding: 8px 9px; }
+    .askwrap { max-width: 420px; }
+  }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 45vh minmax(0, 1fr); }
+    #graphPane { border-right: none; border-bottom: 1px solid #e3e7ee; }
+    #tiers { overflow-x: auto; }
+    .tier { min-width: 180px; }
   }
 </style>
 </head>
@@ -90,47 +243,106 @@
     <button id="askBtn">Ask</button>
   </div>
   <div class="hlinks">
-    <a href="doctor.html">Doctor report</a>
-    <a href="patient.html">Wearable</a>
+    <a href="home.html">Home</a>
     <button class="ghost" id="resetBtn">Reset demo</button>
   </div>
 </header>
+
+<div id="alertStrip">
+  <span class="striplabel">Alerts</span>
+  <div id="alertsBody"><span class="chip-none">Loading&hellip;</span></div>
+</div>
 
 <main>
   <div id="graphPane">
     <svg id="graph"></svg>
     <div id="legend"></div>
-  </div>
-  <div id="sidebar">
-    <div class="card" id="answerCard">
+    <div id="answerCard">
+      <button id="answerClose" title="Dismiss">&#10005;</button>
       <h2>Answer</h2>
       <div id="answerText"></div>
       <div class="muted" id="answerEvidence" style="margin-top:8px"></div>
     </div>
-    <div class="card">
-      <h2>Alerts</h2>
-      <div id="alertsBody" class="muted">Loading&hellip;</div>
-    </div>
-    <div class="card">
-      <h2>Trends <span class="muted" style="font-weight:400">repeated questions / day, last 7 days</span></h2>
-      <div id="trendsBody" class="muted">Loading&hellip;</div>
-    </div>
-    <div class="card">
-      <h2>Handoff</h2>
-      <button id="handoffBtn">Draft handoff</button>
-      <div id="handoffBody"></div>
-    </div>
-    <div class="card">
-      <h2>Daily report</h2>
-      <button id="dailyBtn">Generate today&rsquo;s report</button>
-      <div id="dailyBody"></div>
-    </div>
-    <div class="card">
-      <h2>Doctor</h2>
-      <a href="doctor.html">Open the print-friendly doctor report &rarr;</a>
-    </div>
+  </div>
+
+  <div id="tiers">
+
+    <section class="tier" id="tier-raw">
+      <div class="rail" data-col="raw" title="Expand">
+        <span class="rail-count" id="railcnt-raw">0</span>
+        <span class="rail-title">Raw data</span>
+      </div>
+      <div class="tier-head">
+        <div style="min-width:0">
+          <h3>Raw data <span class="cnt" id="cnt-raw">0</span></h3>
+          <div class="cap">unit: entry</div>
+        </div>
+        <button class="collapse-btn" data-col="raw" title="Collapse column">&#10094;</button>
+      </div>
+      <div class="tier-tools"><input id="rawSearch" placeholder="Filter entries&hellip;" autocomplete="off"></div>
+      <div class="tier-body" id="body-raw"><div class="empty">Loading&hellip;</div></div>
+    </section>
+
+    <section class="tier" id="tier-daily">
+      <div class="rail" data-col="daily" title="Expand">
+        <span class="rail-count" id="railcnt-daily">0</span>
+        <span class="rail-title">Daily reports</span>
+      </div>
+      <div class="tier-head">
+        <div style="min-width:0">
+          <h3>Daily reports <span class="cnt" id="cnt-daily">0</span></h3>
+          <div class="cap">unit: day &middot; auto</div>
+        </div>
+        <button class="collapse-btn" data-col="daily" title="Collapse column">&#10094;</button>
+      </div>
+      <div class="tier-tools"><button id="dailyBtn">Generate today&rsquo;s report</button></div>
+      <div class="tier-body" id="body-daily"><div class="empty">Loading&hellip;</div></div>
+    </section>
+
+    <section class="tier" id="tier-handoff">
+      <div class="rail" data-col="handoff" title="Expand">
+        <span class="rail-count" id="railcnt-handoff">0</span>
+        <span class="rail-title">Handoff</span>
+      </div>
+      <div class="tier-head">
+        <div style="min-width:0">
+          <h3>Handoff <span class="cnt" id="cnt-handoff">0</span></h3>
+          <div class="cap">unit: shift &middot; human-confirmed</div>
+        </div>
+        <button class="collapse-btn" data-col="handoff" title="Collapse column">&#10094;</button>
+      </div>
+      <div class="tier-tools"><button id="handoffBtn">Draft handoff</button></div>
+      <div class="tier-body" id="body-handoff"><div class="empty">Loading&hellip;</div></div>
+    </section>
+
+    <section class="tier" id="tier-doctor">
+      <div class="rail" data-col="doctor" title="Expand">
+        <span class="rail-count" id="railcnt-doctor">0</span>
+        <span class="rail-title">Doctor</span>
+      </div>
+      <div class="tier-head">
+        <div style="min-width:0">
+          <h3>Doctor <span class="cnt" id="cnt-doctor">0</span></h3>
+          <div class="cap">unit: visit &middot; manual</div>
+        </div>
+        <button class="collapse-btn" data-col="doctor" title="Collapse column">&#10094;</button>
+      </div>
+      <div class="tier-tools"><button id="doctorBtn">Generate doctor report</button></div>
+      <div class="tier-body" id="body-doctor"><div class="empty">Loading&hellip;</div></div>
+    </section>
+
   </div>
 </main>
+
+<div id="modalOverlay">
+  <div id="modalBox">
+    <div id="modalHead">
+      <span id="modalTitle"></span>
+      <button id="modalClose" title="Close">&#10005;</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
 <footer>Demo data — simulated. No audio is stored — only text. · Jac walkers on duty: Ingest · Recall · Drift · Critique · Handoff — the graph is the database.</footer>
 
@@ -154,6 +366,18 @@ function mdish(s) {
     if (/^#{1,4}\s/.test(line)) return '<strong>' + line.replace(/^#{1,4}\s/, '') + '</strong>';
     return line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   }).join('<br>');
+}
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtTs(ts) {
+  const d = new Date(ts);
+  if (isNaN(d)) return String(ts || '').slice(0, 16);
+  return MONTHS[d.getMonth()] + ' ' + d.getDate() + ' · '
+    + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function fmtDay(ts) {
+  const d = new Date(ts);
+  if (isNaN(d)) return String(ts || '').slice(0, 10);
+  return MONTHS[d.getMonth()] + ' ' + d.getDate();
 }
 
 /* ---------- D3 graph ---------- */
@@ -192,6 +416,7 @@ let nodesById = new Map();
 let knownIds = new Set();
 let latestSnapshot = null;
 let replaying = false, dragging = false;
+let tlDebounce = null;
 
 const linkBaseOpacity = d =>
   d.type === 'remembers' && d.confidence != null
@@ -251,10 +476,13 @@ function updateGraph(data) {
   if (changed) sim.alpha(0.6).restart();   // only reheat when the graph actually grew/shrank
 
   fresh.forEach(n => flashNode(n.id));
+  if (fresh.length) {                      // graph grew — refresh the tier columns too
+    clearTimeout(tlDebounce);
+    tlDebounce = setTimeout(loadTimeline, 800);
+  }
 
   const p = nodes.find(n => n.type === 'Patient');
   if (p) document.getElementById('patientName').textContent = '— ' + (p.label || p.name || '');
-  renderTrends(data);
 }
 
 function flashNode(id) {
@@ -333,8 +561,11 @@ async function doAsk() {
 }
 document.getElementById('askBtn').addEventListener('click', doAsk);
 document.getElementById('askInput').addEventListener('keydown', e => { if (e.key === 'Enter') doAsk(); });
+document.getElementById('answerClose').addEventListener('click', () => {
+  document.getElementById('answerCard').style.display = 'none';
+});
 
-/* ---------- Alerts ---------- */
+/* ---------- Alerts strip ---------- */
 const SEV_COLOR = s => {
   s = String(s || '').toLowerCase();
   if (s === 'high' || s === 'critical' || s === 'severe') return '#ea4335';
@@ -346,95 +577,280 @@ async function loadAlerts() {
   try {
     const r = await callWalker('critique_alerts');
     const alerts = Array.isArray(r?.alerts) ? r.alerts : Array.isArray(r) ? r : [];
-    if (!alerts.length) { box.innerHTML = '<span class="muted">No alerts — all steady.</span>'; return; }
+    if (!alerts.length) { box.innerHTML = '<span class="chip-none">No alerts — all steady.</span>'; return; }
     box.innerHTML = alerts.map(a => {
-      const counts = (a.base_count != null && a.now_count != null)
-        ? `${esc(a.base_count)}/day → ${esc(a.now_count)}/day` : '';
+      let rate;
+      if (a.now_count != null && a.base_count != null) {
+        const mult = +a.base_count > 0 ? ` (${(+a.now_count / +a.base_count).toFixed(1)}x)` : '';
+        rate = `${esc(a.now_count)}/day now vs ${esc(a.base_count)}/day baseline${mult}`;
+      } else {
+        rate = esc(a.detail || '');
+      }
       const verdict = a.verdict === 'confirmed'
-        ? `<span class="counts" style="color:#34a853">✓ CritiqueWalker · ${a.evidence?.length || 0} evidence</span>`
-        : a.verdict ? `<span class="counts">${esc(a.verdict)}</span>` : '';
-      return `<div class="alert">
+        ? `<span class="vok">✓ CritiqueWalker · ${a.evidence?.length || 0} evidence</span>`
+        : a.verdict ? `<span class="vplain">${esc(a.verdict)}</span>` : '';
+      return `<span class="achip" title="${esc(a.detail || '')}">
         <span class="sev" style="background:${SEV_COLOR(a.severity)}"></span>
-        <span class="kind">${esc(a.kind || 'alert')}</span>
-        <span>${esc(a.detail || '')}</span>
-        <span class="counts">${counts}</span>
+        <strong>${esc(a.kind || 'alert')}</strong>
+        <span class="rate">${rate}</span>
         ${verdict}
-      </div>`;
+      </span>`;
     }).join('');
-  } catch (e) { box.innerHTML = '<span class="muted">Alerts unavailable.</span>'; }
+  } catch (e) { box.innerHTML = '<span class="chip-none">Alerts unavailable.</span>'; }
 }
 loadAlerts();
 setInterval(loadAlerts, 30000);
 
-/* ---------- Trends (inline SVG, from Signal nodes) ---------- */
-function renderTrends(snapshot) {
-  const box = document.getElementById('trendsBody');
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0, 10));
-  }
-  const counts = Object.fromEntries(days.map(d => [d, 0]));
-  (snapshot.nodes || []).forEach(n => {
-    if (n.type !== 'Signal') return;
-    const kind = n.kind || (String(n.label || '').toLowerCase().includes('repeat') ? 'repeat_question' : '');
-    if (kind !== 'repeat_question') return;
-    const ts = n.ts || n.date || '';
-    const day = String(ts).slice(0, 10);
-    if (day in counts) counts[day]++;
-  });
-  const vals = days.map(d => counts[d]);
-  const max = Math.max(1, ...vals);
-  const bw = 34, gap = 10, h = 80, top = 14;
-  const width = days.length * (bw + gap);
-  const bars = days.map((d, i) => {
-    const v = vals[i], bh = Math.round((v / max) * (h - top));
-    const x = i * (bw + gap), y = top + (h - top) - bh;
-    const wd = 'SMTWTFS'[new Date(d + 'T12:00:00').getDay()];
-    return `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(bh, 2)}" rx="4"
-              fill="${i >= days.length - 2 && v > 0 ? '#ea4335' : '#c9d4e8'}"></rect>
-            <text x="${x + bw / 2}" y="${y - 3}" text-anchor="middle" font-size="11" fill="#37415a" font-weight="600">${v}</text>
-            <text x="${x + bw / 2}" y="${h + 14}" text-anchor="middle" font-size="10" fill="#8a93a4">${wd}</text>`;
-  }).join('');
-  box.innerHTML = `<svg viewBox="0 0 ${width} ${h + 20}" width="100%" style="max-width:${width}px">${bars}</svg>`;
+/* ---------- Tier columns: state ---------- */
+let timelineData = { entries: [], reports: [], patient: null };
+let rawQuery = '';
+let handoffDraft = null;          // {report_id, items, content, status, approvedCount, confirmedAt}
+let doctorCards = [];             // client-side only: doctor_report does not persist
+let modalOpen = false;
+const expandedKeys = new Set();
+const CARD_REG = new Map();       // key -> {title, text, md} for the modal
+
+function setCount(col, n) {
+  document.getElementById('cnt-' + col).textContent = n;
+  document.getElementById('railcnt-' + col).textContent = n;
 }
 
-/* ---------- Handoff ---------- */
-document.getElementById('handoffBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('handoffBtn');
-  const box = document.getElementById('handoffBody');
-  btn.disabled = true;
-  try {
-    const d = await callWalker('handoff_draft');
-    const items = Array.isArray(d.items) ? d.items : [];
-    box.innerHTML =
-      items.map(it => `<label class="item"><input type="checkbox" checked value="${esc(it.id)}"><span>${esc(it.text)}</span></label>`).join('') +
-      (d.content ? `<div class="preview">${mdish(d.content)}</div>` : '') +
-      `<button id="handoffConfirm" style="margin-top:10px">Confirm handoff</button>`;
-    document.getElementById('handoffConfirm').addEventListener('click', async ev => {
-      ev.target.disabled = true;
-      const approved = [...box.querySelectorAll('input:checked')].map(el => el.value);
-      try {
-        const c = await callWalker('handoff_confirm', { report_id: d.report_id, approved });
-        box.innerHTML = `<p class="ok">✓ Handoff confirmed (${approved.length} item${approved.length === 1 ? '' : 's'})</p>` +
-                        (c && c.status ? `<span class="muted">status: ${esc(c.status)}</span>` : '');
-      } catch (e) { ev.target.disabled = false; alert('Confirm failed: ' + e.message); }
-    });
-  } catch (e) { box.innerHTML = '<span class="muted">Could not draft handoff.</span>'; }
-  finally { btn.disabled = false; }
+function tcard(key, mtitle, headHTML, text, md) {
+  CARD_REG.set(key, { title: mtitle, text: String(text || ''), md: !!md });
+  const open = expandedKeys.has(key);
+  const inner = md ? mdish(text) : esc(text).replace(/\n/g, '<br>');
+  return `<div class="tcard" data-key="${esc(key)}">
+    <div class="thead">${headHTML}<button class="xbtn" title="Hide card">&#10005;</button></div>
+    <div class="tbody${open ? '' : ' clamp3'}">${inner}</div>
+  </div>`;
+}
+const statusChip = s => s === 'confirmed'
+  ? '<span class="chip green">confirmed</span>'
+  : `<span class="chip amber">${esc(s || 'draft')}</span>`;
+const byTsDesc = (a, b) => String(b.ts || '').localeCompare(String(a.ts || ''));
+
+/* ---------- Column ①: Raw data ---------- */
+function renderRaw() {
+  const box = document.getElementById('body-raw');
+  const all = (timelineData.entries || []).slice().sort(byTsDesc);
+  setCount('raw', all.length);
+  const shown = rawQuery ? all.filter(en => String(en.text || '').toLowerCase().includes(rawQuery)) : all;
+  if (!shown.length) {
+    box.innerHTML = `<div class="empty">${rawQuery ? 'No entries match.' : 'No entries yet.'}</div>`;
+    return;
+  }
+  box.innerHTML = shown.map(en => {
+    const l1 = String(en.source || '').toUpperCase().startsWith('L1');
+    const badge = l1 ? '<span class="badge l1">L1 wearable</span>' : '<span class="badge l2">L2 caregiver</span>';
+    const head = badge + '<span class="spacer"></span>' + `<span class="time">${esc(fmtTs(en.ts))}</span>`;
+    return tcard('entry:' + en.id, 'Entry — ' + fmtTs(en.ts), head, en.text || '', false);
+  }).join('');
+}
+document.getElementById('rawSearch').addEventListener('input', e => {
+  rawQuery = e.target.value.trim().toLowerCase();
+  renderRaw();
 });
 
-/* ---------- Daily report ---------- */
+/* ---------- Column ②: Daily reports ---------- */
+function renderDaily() {
+  const box = document.getElementById('body-daily');
+  const reps = (timelineData.reports || []).filter(r => r.kind === 'daily').sort(byTsDesc);
+  setCount('daily', reps.length);
+  if (!reps.length) { box.innerHTML = '<div class="empty">No daily reports yet.</div>'; return; }
+  box.innerHTML = reps.map(r => {
+    const head = '<span class="rtitle">Daily</span><span class="spacer"></span>'
+      + `<span class="time">${esc(fmtDay(r.ts))}</span>` + statusChip(r.status);
+    return tcard('report:' + r.id, 'Daily report — ' + fmtDay(r.ts), head, r.content || '', true);
+  }).join('');
+}
+function newestEntryDate() {
+  let m = '';
+  (timelineData.entries || []).forEach(en => {
+    const d = String(en.ts || '').slice(0, 10);
+    if (d > m) m = d;
+  });
+  return m || new Date().toISOString().slice(0, 10);
+}
 document.getElementById('dailyBtn').addEventListener('click', async () => {
   const btn = document.getElementById('dailyBtn');
-  const box = document.getElementById('dailyBody');
-  btn.disabled = true; box.innerHTML = '<span class="muted">Writing…</span>';
+  btn.disabled = true; btn.textContent = 'Writing…';
   try {
-    const r = await callWalker('daily_report', { date: new Date().toISOString().slice(0, 10) });
-    box.innerHTML = `<div class="preview">${mdish(r.content || '(empty report)')}</div>`;
-  } catch (e) { box.innerHTML = '<span class="muted">Report failed.</span>'; }
-  finally { btn.disabled = false; }
+    await callWalker('daily_report', { date: newestEntryDate() });
+    await loadTimeline();
+  } catch (e) { alert('Report failed: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Generate today’s report'; }
 });
+
+/* ---------- Column ③: Handoff ---------- */
+function draftCardHTML() {
+  const d = handoffDraft;
+  if (!d) return '';
+  if (d.status === 'confirmed') {
+    return `<div class="tcard" data-static="1">
+      <div class="thead"><span class="chip green">confirmed</span><span class="spacer"></span>
+        <span class="time">${esc(d.confirmedAt || '')}</span>
+        <button class="xbtn" title="Hide card">&#10005;</button></div>
+      <div class="tbody"><span class="ok">✓</span> Handoff confirmed (${d.approvedCount} item${d.approvedCount === 1 ? '' : 's'}).</div>
+    </div>`;
+  }
+  return `<div class="tcard" data-static="1" style="cursor:default">
+    <div class="thead"><span class="chip amber">draft</span><span class="spacer"></span>
+      <span class="time">review &amp; confirm</span>
+      <button class="xbtn" title="Hide card">&#10005;</button></div>
+    ${d.items.map(it => `<label class="item"><input type="checkbox" checked value="${esc(it.id)}"><span>${esc(it.text)}</span></label>`).join('')}
+    ${d.content ? `<div class="preview">${mdish(d.content)}</div>` : ''}
+    <button id="handoffConfirm" style="margin-top:10px;width:100%">Confirm</button>
+  </div>`;
+}
+function renderHandoff() {
+  const box = document.getElementById('body-handoff');
+  const past = (timelineData.reports || [])
+    .filter(r => r.kind === 'handoff' && !(handoffDraft && r.id === handoffDraft.report_id))
+    .sort(byTsDesc);
+  setCount('handoff', past.length + (handoffDraft ? 1 : 0));
+  const pastHTML = past.map(r => {
+    const head = '<span class="rtitle">Handoff</span><span class="spacer"></span>'
+      + `<span class="time">${esc(fmtTs(r.ts))}</span>` + statusChip(r.status);
+    return tcard('report:' + r.id, 'Handoff — ' + fmtTs(r.ts), head, r.content || '', true);
+  }).join('');
+  box.innerHTML = (draftCardHTML() + pastHTML) || '<div class="empty">No handoffs yet — draft one.</div>';
+  const confirmBtn = document.getElementById('handoffConfirm');
+  if (confirmBtn) confirmBtn.addEventListener('click', async ev => {
+    ev.target.disabled = true;
+    const approved = [...box.querySelectorAll('.tcard[data-static] input:checked')].map(el => el.value);
+    try {
+      await callWalker('handoff_confirm', { report_id: handoffDraft.report_id, approved });
+      handoffDraft.status = 'confirmed';
+      handoffDraft.approvedCount = approved.length;
+      handoffDraft.confirmedAt = fmtTs(new Date().toISOString());
+      renderHandoff();
+      loadTimeline();
+    } catch (e) { ev.target.disabled = false; alert('Confirm failed: ' + e.message); }
+  });
+}
+document.getElementById('handoffBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('handoffBtn');
+  btn.disabled = true; btn.textContent = 'Drafting…';
+  try {
+    const d = await callWalker('handoff_draft');
+    handoffDraft = {
+      report_id: d.report_id,
+      items: Array.isArray(d.items) ? d.items : [],
+      content: d.content || '',
+      status: 'draft'
+    };
+    renderHandoff();
+  } catch (e) { alert('Could not draft handoff: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Draft handoff'; }
+});
+
+/* ---------- Column ④: Doctor ---------- */
+function renderDoctor() {
+  const box = document.getElementById('body-doctor');
+  setCount('doctor', doctorCards.length);
+  const cards = doctorCards.map((c, i) => {
+    const head = '<span class="rtitle">Doctor report</span><span class="spacer"></span>'
+      + `<span class="time">${esc(c.ts)}</span>`;
+    return tcard('doctor:' + i, 'Doctor report — ' + c.ts, head, c.content, true);
+  }).join('');
+  box.innerHTML = cards
+    + `<a class="tcard linkcard" href="doctor.html">Open print view &rarr;
+        <div class="muted" style="margin-top:3px;font-size:12px">print-friendly · weekly trends</div></a>`;
+}
+document.getElementById('doctorBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('doctorBtn');
+  btn.disabled = true; btn.textContent = 'Writing…';
+  try {
+    const r = await callWalker('doctor_report');
+    doctorCards.unshift({ content: r.content || '(empty report)', ts: fmtTs(new Date().toISOString()) });
+    renderDoctor();
+    loadTimeline();
+  } catch (e) { alert('Report failed: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Generate doctor report'; }
+});
+
+/* ---------- Timeline load + poll ---------- */
+function renderAll() { renderRaw(); renderDaily(); renderHandoff(); renderDoctor(); }
+async function loadTimeline() {
+  if (modalOpen) return;   // paused while a modal is open
+  try {
+    const t = await callWalker('timeline');
+    timelineData = {
+      entries: Array.isArray(t?.entries) ? t.entries : [],
+      reports: Array.isArray(t?.reports) ? t.reports : [],
+      patient: t?.patient ?? null
+    };
+    const p = timelineData.patient;
+    const pn = typeof p === 'string' ? p : (p && (p.name || p.label));
+    if (pn) document.getElementById('patientName').textContent = '— ' + pn;
+    renderAll();
+  } catch (e) { console.warn('timeline failed:', e.message); }
+}
+loadTimeline();
+setInterval(loadTimeline, 10000);
+
+/* ---------- Card interactions: expand / modal / hide ---------- */
+const tiersEl = document.getElementById('tiers');
+let clickTimer = null;
+tiersEl.addEventListener('click', e => {
+  const xb = e.target.closest('.xbtn');
+  if (xb) {                        // client-side hide; card reappears on next refresh
+    const c = xb.closest('.tcard');
+    if (c) c.remove();
+    return;
+  }
+  if (e.target.closest('button, a, input, label')) return;
+  const card = e.target.closest('.tcard');
+  if (!card || card.dataset.static || !card.dataset.key) return;
+  const key = card.dataset.key;
+  clearTimeout(clickTimer);
+  clickTimer = setTimeout(() => {  // wait to see if it becomes a double-click
+    const body = card.querySelector('.tbody');
+    if (!body) return;
+    if (expandedKeys.has(key)) { expandedKeys.delete(key); body.classList.add('clamp3'); }
+    else { expandedKeys.add(key); body.classList.remove('clamp3'); }
+  }, 230);
+});
+tiersEl.addEventListener('dblclick', e => {
+  if (e.target.closest('button, a, input, label')) return;
+  const card = e.target.closest('.tcard');
+  if (!card || card.dataset.static || !card.dataset.key) return;
+  clearTimeout(clickTimer);
+  const reg = CARD_REG.get(card.dataset.key);
+  if (reg) openModal(reg.title, reg.text, reg.md);
+});
+
+function openModal(title, text, md) {
+  modalOpen = true;
+  document.getElementById('modalTitle').textContent = title || '';
+  document.getElementById('modalBody').innerHTML = md ? mdish(text) : esc(text).replace(/\n/g, '<br>');
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() {
+  modalOpen = false;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOpen) closeModal(); });
+
+/* ---------- Column collapse (persisted) ---------- */
+const COLS = ['raw', 'daily', 'handoff', 'doctor'];
+function setCollapsed(col, v) {
+  document.getElementById('tier-' + col).classList.toggle('collapsed', v);
+  try { localStorage.setItem('cg_collapse_' + col, v ? '1' : ''); } catch (e) {}
+}
+COLS.forEach(col => {
+  let saved = '';
+  try { saved = localStorage.getItem('cg_collapse_' + col) || ''; } catch (e) {}
+  if (saved === '1') setCollapsed(col, true);
+});
+document.querySelectorAll('.collapse-btn').forEach(b =>
+  b.addEventListener('click', e => { e.stopPropagation(); setCollapsed(b.dataset.col, true); }));
+document.querySelectorAll('.tier .rail').forEach(r =>
+  r.addEventListener('click', () => setCollapsed(r.dataset.col, false)));
 
 /* ---------- Reset demo ---------- */
 document.getElementById('resetBtn').addEventListener('click', async () => {
@@ -443,8 +859,12 @@ document.getElementById('resetBtn').addEventListener('click', async () => {
   try {
     await callWalker('seed_load');
     knownIds = new Set();            // avoid a full-graph flash storm
+    handoffDraft = null;
+    doctorCards = [];
+    expandedKeys.clear();
     await pollGraph();
     loadAlerts();
+    await loadTimeline();
   } catch (e) { alert('Reset failed: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = 'Reset demo'; }
 });

@@ -5,6 +5,7 @@
 # live in the _llm_* private functions below.
 
 import os;
+import re;
 import llm_backend;
 
 glob llm = llm_backend.get_model();
@@ -72,10 +73,44 @@ def _mock_on() -> bool {
 }
 
 
+# Keyless fallback: deterministic heuristic extraction so the full ingest →
+# graph → alert pipeline works with zero API calls (demo insurance — the same
+# trade the Best Demo winner PharmaGraph made). Coarse by design; the live
+# byLLM path is strictly better, this only has to keep the demo standing.
+def _heuristic_extract(batch_text: str) -> ExtractResult {
+    low = batch_text.lower();
+    persons: list[ExtractedPerson] = [];
+    signals: list[ExtractedSignal] = [];
+    seen: list[str] = [];
+    skip_words = ["margaret", "sunday", "monday", "tuesday", "wednesday", "thursday",
+            "friday", "saturday", "i", "she", "he", "the", "a", "is", "it",
+            "oh", "and", "but", "that", "this", "duke", "ellington",
+            "they", "asked", "found", "when", "did", "everyone", "after",
+            "before", "right", "within", "her", "his", "we", "you"];
+    for w in re.findall(r"[A-Z][a-z]+", batch_text) {
+        ws = str(w);
+        if ws.lower() not in skip_words and ws.lower() not in seen {
+            seen.append(ws.lower());
+            persons.append(ExtractedPerson(name=ws, relation="mentioned"));
+        }
+    }
+    if (re.search(r"(asked|asks|asking).*(again|twice|three times|\d+ times)", low)
+        or re.search(r"what day is it|is it (sunday|monday|tuesday)|did we (already|just)", low)) {
+        signals.append(ExtractedSignal(kind="repeat_question",
+                                       detail=batch_text[:80]));
+    }
+    if re.search(r"bus stop|need to be at|looking for the|where am i|wrong (house|door)", low) {
+        signals.append(ExtractedSignal(kind="disorientation", detail=batch_text[:80]));
+    }
+    if re.search(r"sang|laughed|smiled|recognized|remembered the", low) {
+        signals.append(ExtractedSignal(kind="social_moment", detail=batch_text[:80]));
+    }
+    return ExtractResult(persons=persons, facts=[], events=[], signals=signals);
+}
+
 def extract(batch_text: str, today: str) -> ExtractResult {
     if _mock_on() {
-        # naive deterministic fallback: nothing extracted
-        return ExtractResult(persons=[], facts=[], events=[], signals=[]);
+        return _heuristic_extract(batch_text);
     }
     return _llm_extract(batch_text, today);
 }

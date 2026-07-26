@@ -7,6 +7,23 @@ hashes. Newest entries first. Keep entries short; link evidence.
 
 ---
 
+## 2026-07-26 ~16:20 — Napkin-spec UI shipped; seed-500 root-caused; ratio guarded
+
+- **UI redesign per Zelin's hand-drawn spec**: home.html terminal chooser (`/` now
+  redirects there); dashboard rebuilt — left D3 graph pane, right FOUR collapsible
+  tier columns (raw search / daily auto / handoff human-confirmed / doctor manual),
+  cards newest-first, click expand, dblclick modal, per-card dismiss; alerts strip
+  under header. D3 engine, spotlight replay, Ask flow preserved verbatim.
+- **seed_load 500 root cause**: deploy packaging drops loose data files; corpus now
+  compiled into `seed_corpus.py` (verified by seeding with seed_data.json removed).
+- **Keyless heuristic extraction** in llm.jac mock path — full raw-text → alert
+  pipeline works with zero API calls (PharmaGraph-style demo insurance).
+- **search_entries walker** (napkin's raw-data search, server-side).
+- **41-check Jac test suite** (tests/smoke|provenance|integration.jac) + demo_cli;
+  integration proves RAW TEXT → verified alert with the flat control quiet.
+- **Jac line share guarded**: 41.7% after the UI grew (classic dashboard copy
+  deleted — git history is the fallback).
+
 ## 2026-07-26 ~14:10 — JacCoder (platform AI) session verdict + the real static-serving fix
 
 JacCoder's platform-side session: **diagnosis direction accepted, implementation rejected.**

@@ -286,6 +286,31 @@ walker:pub graph_snapshot {
     }
 }
 
+# Server-side raw-data search (the napkin spec's "raw data search" column):
+# keyword match over Entry text, same stopword pipeline as ask.
+walker:pub search_entries {
+    has query: str;
+    has reports: list[dict] = [];
+
+    can go with Root entry {
+        visit [-->[?:Patient]] else {
+            report {"matches": []};
+        }
+    }
+
+    can find with Patient entry {
+        kws = kw_split(self.query);
+        matches = [];
+        for e in [here ->:has_entry:->[?:Entry]] {
+            if kw_match(kws, e.text) {
+                matches.append({"id": jid(e), "ts": e.ts, "source": e.source, "text": e.text});
+            }
+        }
+        report {"matches": matches};
+    }
+}
+
+
 # Full-content feed for the tiered-column UI: raw entries + all reports with
 # complete text (graph_snapshot labels are truncated to 40 chars by design).
 walker:pub timeline {
