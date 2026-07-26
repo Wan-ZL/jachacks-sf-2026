@@ -361,6 +361,10 @@ walker:pub seed_load {
     }
 
     can load with Patient entry {
+        # Whole body guarded: a failure on the hosted runtime used to surface
+        # as an opaque 500 — now the traceback returns in the response, so
+        # the browser alert IS the diagnosis.
+        try {
         # Wipe: every non-Patient node is exactly 1 hop out from Patient.
         for n in [here -->] {
             del n;
@@ -398,6 +402,10 @@ walker:pub seed_load {
             count += 1;
         }
         report {"loaded": count};
+        } except Exception as exc {
+            import traceback;
+            report {"loaded": 0, "error": str(exc), "trace_tail": traceback.format_exc()[-900:]};
+        }
     }
 }
 
