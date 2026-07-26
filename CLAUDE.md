@@ -24,7 +24,7 @@ over memory or general docs; only its patterns are confirmed to run on this mach
   asset-extension allowlist lives in jac.toml `[plugins.client.assets]` and REPLACES the default set).
 - Reset demo state: `./scripts/demo_reset.sh` (wipes `.jac/`, restarts, reloads `seed_data.json`).
 - Frontend pages default their API base to same-origin (override with `?api=http://host:port`).
-  Open http://localhost:8000/dashboard.html — not file://.
+  Open http://localhost:8000/static/dashboard.html — not file://.
 
 ## Architecture (why it's shaped this way)
 

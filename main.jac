@@ -658,3 +658,15 @@ walker:pub doctor_report {
         report {"content": content, "weekly": weekly, "generated": datetime.now().isoformat()};
     }
 }
+
+
+# Client entry — the hosted dev preview's client pipeline requires a def:pub
+# app export. The real UI is the static trio in assets/, served by BOTH
+# runtimes under /static/ (verified: old runtime's is_static_path branch +
+# new runtime gateway's serve_project_static both resolve assets/<file>).
+cl {
+    def:pub app() -> JsxElement {
+        window.location.replace("/static/dashboard.html");
+        return <div style={{"fontFamily": "sans-serif", "padding": "2rem", "color": "#555"}}>Loading CareGraph…</div>;
+    }
+}

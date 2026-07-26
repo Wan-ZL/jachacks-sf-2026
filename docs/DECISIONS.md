@@ -7,6 +7,26 @@ hashes. Newest entries first. Keep entries short; link evidence.
 
 ---
 
+## 2026-07-26 ~14:10 — JacCoder (platform AI) session verdict + the real static-serving fix
+
+JacCoder's platform-side session: **diagnosis direction accepted, implementation rejected.**
+
+- ✅ Accepted insight: the hosted dev preview's client pipeline hard-requires a
+  `def:pub app()` export (its `client_runtime.js` imports `app` from compiled main).
+- ❌ Rejected: its FastAPI `mount_assets_fastapi()` rewrite of static_patch.py guesses
+  0.16-era internals (`jaclang.plugin.feature`, `JacMachine`) that don't exist on the
+  v0.34 runtime — dead code; and its platform-local edits (jac.toml dep removal,
+  main.jac meta-refresh app) stay platform-local and will be discarded on re-import.
+
+**Root cause found in runtime source** (jaseci-labs/jac, gateway impl): the client
+`/assets/` route excludes .html, but `handle_static` routes `/static/<rest>` through
+`serve_project_static`, whose candidate dirs start with `assets/` and whose
+`serve_extra_static` serves ANY mime type including text/html. The old 0.16.7 server's
+`/static/` branch resolves `assets/<file>` too. **Canonical URL shape: `/static/dashboard.html`**
+— works on old runtime local, new runtime dev preview (Vite proxies /static → API), and
+production deploys (SPA catch-all explicitly excludes `static/`). Shipped: client entry
+`app()` redirecting `/` → `/static/dashboard.html`; all docs/scripts canonicalized.
+
 ## 2026-07-26 ~13:55 — Reviewer round 3: retractions acknowledged, two fixes shipped
 
 Reviewer retracted two earlier claims ("7-day seed can't support DriftWalker" —
