@@ -286,12 +286,17 @@ walker:pub graph_snapshot {
 }
 
 def seed_path() -> str {
-    for p in ["seed_data.json", "backend/seed_data.json", "../backend/seed_data.json"] {
+    # Absolute path first: the hosted sandbox's cwd is NOT the project root.
+    candidates = [
+        os.path.join(static_patch.PROJECT_ROOT, "seed_data.json"),
+        "seed_data.json", "backend/seed_data.json", "../backend/seed_data.json"
+    ];
+    for p in candidates {
         if os.path.exists(p) {
             return p;
         }
     }
-    return "seed_data.json";
+    return candidates[0];
 }
 
 walker:pub seed_load {
@@ -309,7 +314,12 @@ walker:pub seed_load {
         for n in [here -->] {
             del n;
         }
-        data = json.loads(open(seed_path()).read());
+        try {
+            data = json.loads(open(seed_path()).read());
+        } except Exception as e {
+            report {"loaded": 0, "error": f"seed file unreadable: {e} (cwd={os.getcwd()})"};
+            disengage;
+        }
         here.name = str(data.get("patient", here.name));
         count = 0;
         for e in data["entries"] {

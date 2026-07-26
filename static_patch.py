@@ -50,3 +50,8 @@ def apply():
 
 
 PATCHED_TARGETS = apply()
+
+# Absolute project root (this file lives at repo root) — lets walkers resolve
+# bundled data files regardless of the server's working directory (the hosted
+# sandbox does not run from the project root; relative paths 500 there).
+PROJECT_ROOT = str(Path(__file__).resolve().parent)
