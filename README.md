@@ -7,15 +7,15 @@ built in **Jac** (Jaseci object-spatial stack) for JacHacks SF 2026.
 
 ## What it does
 
-- **L1 — Patient wearable** (`frontend/patient.html`): an old phone on a lanyard. One button:
+- **L1 — Patient wearable** (`assets/patient.html`): an old phone on a lanyard. One button:
   long-press to start/stop listening — the patient always holds the off switch. Speech is
   transcribed by the browser's speech engine; **the system never records or stores audio — only
   the recognized text is kept**. Text batches flow to the graph.
-- **L2 — Caregiver console** (`frontend/dashboard.html`): the patient's memories grow as a living
+- **L2 — Caregiver console** (`assets/dashboard.html`): the patient's memories grow as a living
   graph (people, facts, events). Walker agents patrol it: detect decline signals (repeat
   questions, name confusion), raise alerts, auto-write the daily report, and draft the shift
   handoff — the caregiver only reviews and confirms.
-- **L3 — Doctor report** (`frontend/doctor.html`): one click before an appointment produces a
+- **L3 — Doctor report** (`assets/doctor.html`): one click before an appointment produces a
   clinical timeline: weekly signal trends, confidence decay, key events.
 
 All core reasoning is **deterministic graph traversal** by named Jac walkers

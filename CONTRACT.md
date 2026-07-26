@@ -11,22 +11,26 @@ reports → humans only confirm. Three layers: L1 patient wearable / L2 caregive
 
 ## Repo layout
 ```
-backend/
+(repo root — a root-level Jac project so jachammer/jac start find it directly)
   main.jac          # ALL 10 walkers live HERE (served module). GOTCHA (verified): walkers
                     # pulled in via `include` lose their :pub tag under `jac start` and 401.
                     # Only type/def includes (schema, llm) survive include.
   schema.jac        # node/edge types (include'd by main.jac — types are safe to include)
   llm.jac           # byLLM Model config + typed extraction/drafting functions + obj types
-  jac.toml          # required by `jac start` in this cwd
+  static_patch.py   # fills jaclang 0.16.7's unimplemented send_static_file (see header)
+  jac.toml          # entry_point, [serve] port, [plugins.client.assets] custom_extensions
+                    # (REPLACES default asset-extension set — keep .css/.js/etc listed),
+                    # [dependencies] byllm (so hosted runtimes pip-install it)
   seed_data.json    # 7-day simulated corpus (see SEED DATA); loaded by seed_load walker
-frontend/
+assets/             # static frontend, served BY THE SAME jac server (single origin, no CORS)
   dashboard.html    # caregiver console: D3 graph + spotlight replay + trends + alerts + handoff review
   patient.html      # wearable page: long-press record, Web Speech API, batch POST
   doctor.html       # doctor report: print-friendly read-only
-  app.css           # shared minimal styles (dark-on-light, big touch targets)
+  app.css           # shared minimal styles
+  vendor/d3.v7.min.js
 scripts/
-  run.sh            # start backend (+ static server if needed), env activation, ports
-  demo_reset.sh     # wipe graph + reload seed
+  run.sh            # ONE server on :8000 (walkers + assets); run.sh stop
+  demo_reset.sh     # wipe graph + reseed
 docs/               # design doc + recon cheatsheets (not part of app)
 ```
 

@@ -19,10 +19,12 @@ over memory or general docs; only its patterns are confirmed to run on this mach
 
 - Python env: conda env `jachacks` (`conda activate jachacks`). Jac toolchain + byllm installed there.
 - LLM key: `export ANTHROPIC_API_KEY=$(cat ~/Desktop/Keys/anthropic_key.txt)` (scripts/run.sh does this).
-- Run everything: `./scripts/run.sh` (backend via jac serve + frontend static; ports in script header).
-- Reset demo state: `./scripts/demo_reset.sh` (wipes graph, reloads `backend/seed_data.json`).
-- Frontend is plain HTML/JS — open `frontend/dashboard.html` via the static server, not file://
-  (Web Speech + fetch need http origin). Pages accept `?api=http://host:port` to point at the backend.
+- Run everything: `./scripts/run.sh` — ONE server on :8000 serves walkers AND the static frontend
+  from `assets/` (static_patch.py fills jaclang 0.16.7's unimplemented send_static_file; the
+  asset-extension allowlist lives in jac.toml `[plugins.client.assets]` and REPLACES the default set).
+- Reset demo state: `./scripts/demo_reset.sh` (wipes `.jac/`, restarts, reloads `seed_data.json`).
+- Frontend pages default their API base to same-origin (override with `?api=http://host:port`).
+  Open http://localhost:8000/dashboard.html — not file://.
 
 ## Architecture (why it's shaped this way)
 
