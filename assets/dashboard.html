@@ -204,6 +204,7 @@
   .tbody.clamp3 {
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
+  .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .tcard.linkcard {
     display: block; text-decoration: none; color: #b06f2b; font-weight: 600;
     background: #f6efe0;
@@ -696,7 +697,7 @@ function tcard(key, mtitle, headHTML, text, md) {
   const inner = md ? mdish(text) : esc(text).replace(/\n/g, '<br>');
   return `<div class="tcard" data-key="${esc(key)}">
     <div class="thead">${headHTML}<button class="xbtn" title="Hide card">&#10005;</button></div>
-    <div class="tbody${open ? '' : ' clamp3'}">${inner}</div>
+    <div class="tbody${open ? '' : (key.startsWith('entry:') ? ' clamp2' : ' clamp3')}">${inner}</div>
   </div>`;
 }
 const statusChip = s => s === 'confirmed'
@@ -921,28 +922,8 @@ tiersEl.addEventListener('click', e => {
   if (e.target.closest('button, a, input, label')) return;
   const card = e.target.closest('.tcard');
   if (!card || card.dataset.static || !card.dataset.key) return;
-  const key = card.dataset.key;
-  // Reports open the fullscreen modal on a SINGLE click — the columns are too
-  // narrow for inline expansion of long content. Raw entries keep inline toggle.
-  if (!key.startsWith('entry:')) {
-    clearTimeout(clickTimer);
-    const reg = CARD_REG.get(key);
-    if (reg) openModal(reg.title, reg.text, reg.md);
-    return;
-  }
-  clearTimeout(clickTimer);
-  clickTimer = setTimeout(() => {  // wait to see if it becomes a double-click
-    const body = card.querySelector('.tbody');
-    if (!body) return;
-    if (expandedKeys.has(key)) { expandedKeys.delete(key); body.classList.add('clamp3'); }
-    else { expandedKeys.add(key); body.classList.remove('clamp3'); }
-  }, 230);
-});
-tiersEl.addEventListener('dblclick', e => {
-  if (e.target.closest('button, a, input, label')) return;
-  const card = e.target.closest('.tcard');
-  if (!card || card.dataset.static || !card.dataset.key) return;
-  clearTimeout(clickTimer);
+  // Unified: every card opens the fullscreen modal — columns stay compact,
+  // detail lives in the overlay.
   const reg = CARD_REG.get(card.dataset.key);
   if (reg) openModal(reg.title, reg.text, reg.md);
 });
