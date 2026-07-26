@@ -31,9 +31,9 @@
 
 <h2>30 秒版</h2>
 <div class="card tldr">
-  <p><strong>一句话：</strong>挂在 Alzheimer's 患者胸前的一台旧手机<strong>自动听、自动记</strong>：对话在手机本地转成文字（音频永不离开设备），攒批交给 LLM 抽取，长成一张"她还记得什么"的记忆图谱。图谱<strong>自动检测衰退、自动报警、自动起草交接简报</strong>——照护者只做最后确认，医生打开就是完整病程趋势。<strong>人不再负责记录，只负责签字。</strong></p>
+  <p><strong>一句话：</strong>挂在 Alzheimer's 患者胸前的一台旧手机<strong>自动听、自动记</strong>：对话由浏览器语音引擎转成文字（<strong>系统不录制、不存储任何音频，只保留文字</strong>），攒批交给 LLM 抽取，长成一张"她还记得什么"的记忆图谱。图谱<strong>自动检测衰退、自动报警、自动起草交接简报</strong>——照护者只做最后确认，医生打开就是完整病程趋势。<strong>人不再负责记录，只负责签字。</strong></p>
   <p><strong>Tagline：</strong>See what she still remembers — and know the moment it starts to fade.</p>
-  <p><strong>为什么能赢：</strong>① <strong>全自动闭环</strong>：感知→抽取→检测→起草，人只出现在确认环节——"Depth of Agentic Behavior" 评分项直接拉满；② 医疗+弱势群体 = 本系列最高产获奖域（上届 13 奖中 6 个健康类）；③ 架构就是 Jac 官方招牌范式（typed 图 + walker 议会 + byLLM 只在边界），同时押 3 个奖：Social Impact + Best Use of Jac + Best JacHammer。</p>
+  <p><strong>为什么能赢：</strong>① <strong>全自动闭环</strong>：感知→抽取→检测→起草，人只出现在确认环节；② 医疗+照护域 = 本系列最高产获奖域（上届近半获奖项目：MediGraph、CONSILIUM、Persist、PharmaGraph、Drowzie——pitch 里报项目名，别报统计数字）；③ 架构就是 Jac 官方招牌范式（typed 图 + walker 议会 + byLLM 只在边界），同时押 3 个奖：Social Impact + Best Use of Jac + Best JacHammer。</p>
 </div>
 
 <h2>故事（demo 开场 20 秒念这个）</h2>
@@ -44,7 +44,7 @@
 
 <h2>三层结构（队内讨论定稿：数据质量逐层精炼，全程时间轴）</h2>
 <div class="card info">
-  <p><strong>L1 患者随身端 —— 原始数据层（全自动）。</strong>一台旧手机挂胸前，网页只有<strong>一个按钮：长按开启录音，再长按关闭</strong>——患者随时有权拒绝被录，这个设计本身就是伦理答辩的王牌。开启时 Web Speech API 在手机<strong>本地</strong>把对话连续转成文字（患者和任何人的对话都记），<strong>音频永不离开设备</strong>；文字攒批（每 5 分钟或一段对话结束）→ byLLM 一次性批量抽取，顺带拿到<strong>对话级衰退信号</strong>：同一个故事一次对话讲 3 遍、没认出来访的老朋友、答非所问。</p>
+  <p><strong>L1 患者随身端 —— 原始数据层（全自动）。</strong>一台旧手机挂胸前，网页只有<strong>一个按钮：长按开启，再长按关闭</strong>——患者随时可以关掉（这是尊严设计细节，<strong>不要在答辩里当"有效同意"讲</strong>：对认知障碍患者，开关不构成同意；同意来自监护人/POA 授权 + 佩戴明显标识）。开启时 Web Speech API 把对话连续转成文字（患者和任何人的对话都记）；<strong>如实口径：语音识别由浏览器引擎完成（Chrome 走云端识别），我们的系统不录制、不存储、不上传任何音频文件，只保留识别文字</strong>（roadmap：换 whisper.cpp 全本地识别）。文字攒批（每 5 分钟或一段对话结束）→ byLLM 一次性批量抽取，顺带拿到<strong>对话级衰退信号</strong>：同一个故事一次对话讲 3 遍、没认出来访的老朋友、答非所问。注意：浏览器的连续识别会周期性自停，代码里必须 onend 自动重启（demo 没问题，"戴一整天"是 roadmap 说法）。</p>
   <p><strong>L2 家属/照护者端 —— 人类精修层（半自动）。</strong>家属和照护者注入自己的观察（语音/文字补录），并负责两种报告：① <strong>每日报告</strong>——全自动生成、自动存档；② <strong>交接报告</strong>——换班/交接时点一下，AI 起草，人逐条 review 确认后保存。人不生产流水账，只批准结论。</p>
   <p><strong>L3 医生层 —— 临床报告层。</strong>就诊前一键生成医生版报告：完整病程趋势 + 关键事件时间轴 + 数据来源标注。（医生的专业化输入今天不做，进 roadmap——多一类角色 = 多一套表单和权限，demo 收益低。）</p>
   <p><strong>Jac 加分点：每个节点带来源标签（L1 wearable / L2 human / L3 clinical）和相应置信度权重</strong>——"分层数据质量"直接建模成 typed 图的属性，评委一眼看到这是图原生设计，不是套壳。整套系统 = 患者的<strong>基于时间轴的记录与报告系统</strong>：原始 → 精修 → 临床。</p>
@@ -60,9 +60,10 @@
   <table>
     <tr><th>阶段</th><th>内容</th><th>纪律</th></tr>
     <tr><td><strong>P0 地基</strong>（15-20 分钟）</td><td>全队定死再开工：图 schema（node/edge 类型+来源标签）、walker 名单、API 契约（endpoint 形状）、两种报告的 JSON 格式</td><td>没有契约就并行 = 4 个 agent 产 4 个互不兼容的模块</td></tr>
-    <tr><td><strong>P1 骨架闪电战</strong>（~1 小时）</td><td>多 agent / workflow 并行把<strong>三层全部功能</strong>一把实现：L1 长按录音页、L2 控制台+双报告、L3 医生报告、4 walker、byLLM 抽取。<strong>第一小时内就部署 jachammer</strong>（平台是最大未知数）</td><td>目标 = 端到端数据流跑通，每个功能先 stub 通再加深，不追求任何一个做深</td></tr>
+    <tr><td><strong>P1 骨架闪电战</strong>（~1 小时）</td><td>多 agent / workflow 并行把<strong>三层全部功能</strong>一把实现：L1 长按录音页、L2 控制台+双报告、L3 医生报告、4 walker、byLLM 抽取。<strong>jachammer 不进第一小时</strong>（它不是强制提交项，见奖项表）</td><td>目标 = 端到端数据流跑通，每个功能先 stub 通再加深，不追求任何一个做深</td></tr>
     <tr><td><strong>P2 测试+修功能</strong></td><td>全队真机测一轮 → 修补清单<strong>按 1:30 分镜排优先级</strong> → 补种子数据</td><td>demo 路径上的 bug 优先于一切新功能</td></tr>
     <tr><td><strong>P3 UI 调整</strong>（最后）</td><td>颜色、排版、文案打磨</td><td>⚠️ D3 图可视化和聚光灯回放<strong>算功能不算 UI</strong>（Best Demo 的配方），P1 就要有骨架版</td></tr>
+    <tr><td><strong>降级阶梯</strong>（13:15 未全通时）</td><td>砍序：患者随身页（改在演示笔记本 localhost 开，钱镜头保留）→ 医生页（并进 dashboard 一个 tab）→ 日报（只留交接报告）</td><td><strong>图谱 + 报警 + 交接简报 = 不可砍核心</strong></td></tr>
     <tr><td><strong>不做（roadmap 一句话）</strong></td><td>摄像头/拍照、锁屏后台、native app、医生专业输入、多患者管理</td><td>有人想加 = 指着这行拒绝</td></tr>
   </table>
   <p class="muted">Web Speech API 兼容性注意：Chrome（桌面/Android）最稳，iOS Safari 挑剔——demo 用 Android 或一台 Chrome 笔记本竖屏模拟手机，别赌 iPhone。</p>
@@ -75,9 +76,9 @@
   <rect x="16" y="44" width="192" height="118" rx="8" fill="#f3edff" stroke="#9c6ade" stroke-width="2"/>
   <text x="112" y="65" font-size="13" font-weight="700" text-anchor="middle" fill="#6b3fa0">L1 患者随身端（全自动）</text>
   <text x="112" y="84" font-size="11.5" text-anchor="middle" fill="#333">旧手机挂胸前 · 长按开/关录音</text>
-  <text x="112" y="100" font-size="11.5" text-anchor="middle" fill="#333">本地转文字 · 音频不出设备</text>
+  <text x="112" y="100" font-size="11.5" text-anchor="middle" fill="#333">语音→文字 · 不存任何音频</text>
   <text x="112" y="116" font-size="11.5" text-anchor="middle" fill="#333">攒批上传 → 对话级衰退信号</text>
-  <text x="112" y="138" font-size="10.5" text-anchor="middle" fill="#946c00">患者可随时关 = 知情权设计</text>
+  <text x="112" y="138" font-size="10.5" text-anchor="middle" fill="#946c00">患者可随时关（尊严设计）</text>
 
   <rect x="16" y="196" width="192" height="96" rx="8" fill="#eef4ff" stroke="#4285f4" stroke-width="1.5"/>
   <text x="112" y="217" font-size="13" font-weight="700" text-anchor="middle" fill="#1a56b0">L2 家属/照护者端（精修）</text>
@@ -184,8 +185,8 @@
   <line x1="420" y1="348" x2="420" y2="372" stroke="#8a8fa3" stroke-width="1.6" marker-end="url(#ar2)"/>
 
   <rect x="16" y="376" width="808" height="48" rx="8" fill="#fde8e6" stroke="#ea4335" stroke-width="1.5"/>
-  <text x="420" y="396" font-size="13" font-weight="700" text-anchor="middle" fill="#b3261e">部署 jachammer.ai（提交要求 + 评分项 + $500 Best JacHammer）· 兜底: jac start 本地</text>
-  <text x="420" y="414" font-size="11.5" text-anchor="middle" fill="#8a4540">14:00 前必须试通 —— 流程没公开文档，抓 mentor / Discord #ask-an-organizer 问</text>
+  <text x="420" y="396" font-size="13" font-weight="700" text-anchor="middle" fill="#b3261e">部署：jachammer.ai（非强制，影响评分 + $400 奖）或 cloudflared HTTPS 隧道 · 兜底 jac start 本地</text>
+  <text x="420" y="414" font-size="11.5" text-anchor="middle" fill="#8a4540">部署的首要动机 = HTTPS（手机麦克风要 secure context）· 详细 rubric 在 Discord，去拿</text>
 </svg>
 
 <div class="card warn">
@@ -197,7 +198,7 @@
   <tr><th>冲</th><th>奖金</th><th>凭什么拿</th></tr>
   <tr><td><strong>Social Impact 主赛道</strong></td><td class="money">$1,500 / $800</td><td>赛道简介明写 healthcare/accessibility；医疗+弱势群体 = 上届最高产获奖域；有情感钩子 + 硬数字（690 万患者/1100 万照护者）。</td></tr>
   <tr><td><strong>Best Use of Jac</strong></td><td class="money">$400</td><td>Checklist 全踩：4 具名 walker ✓ typed 图+自动持久化 ✓ byLLM typed returns ✓ 确定性遍历+LLM 在边界 ✓ .cl.jac 全栈 ✓ walker :pub 自动 REST ✓。认真竞争者估计个位数。</td></tr>
-  <tr><td><strong>Best JacHammer</strong></td><td class="money">$500</td><td>部署上去就有门票；大多数队嫌麻烦不部。顺带给主赛道加分（部署写进了评分）。</td></tr>
+  <tr><td><strong>Best JacHammer</strong></td><td class="money">$400</td><td>官方定义原文："Use jachammer.ai to build and ship a working application"。部署<strong>非强制</strong>但官方明说 "not deploying can affect your judging"。我们 P2 起部署——首要动机其实是拿 HTTPS 地址（手机麦克风需要 secure context），奖是顺带。</td></tr>
   <tr><td>Sponsor 奖（机会型）</td><td>现场公布</td><td>byLLM 后端换 Gemini 可能就是 DeepMind 奖门票，成本一行配置。听 briefing 规则再决定。</td></tr>
 </table>
 <table>
@@ -238,6 +239,7 @@
     <tr><td>1:00–1:15</td><td>DriftWalker 报警卡："重复提问 3 次/天 → 11 次/天"→ 照护者点 confirm，交接简报生成</td></tr>
     <tr><td>1:15–1:30</td><td>医生趋势页一扫而过 → tagline："See what she still remembers — and know the moment it starts to fade."</td></tr>
   </table>
+  <p class="muted">口播硬数字（学 CONSILIUM/Sentinel 的打法，全部标注 simulated）："20/20 预埋事实全部可召回且每条附证据路径；衰退报警在 7 天模拟弧线的第 5 天触发。" 690 万患者是 problem size，不是 result——result 数字用这两个。</p>
 </div>
 
 <h2>开工前必须统一的 7 件事（你没想到的都在这）</h2>
@@ -245,9 +247,9 @@
   <ol>
     <li><strong>Demo 脚本先行</strong>：先写 1:30 视频脚本，再决定做什么功能。不在 demo 路径上的功能一律不做。</li>
     <li><strong>种子数据 = 情感弹药</strong>：7 天混合语料（随身端对话转写片段 + 交接补录），埋好衰退弧线——第 5 天开始叫错孙女的名字、同一个故事一次对话里讲 3 遍。B 花 30 分钟精心写，值。</li>
-    <li><strong>伦理答辩预案</strong>（评委必问）："这是监控吗？"→ ① 音频在设备本地转文字，原始录音不上传不保存；② 佩戴有明显录音标识，访客可见；③ 家属/监护人（POA）授权；④ AI 只起草、人确认，报警是提示不是诊断（不碰医疗器械红线）；⑤ 可私有部署。</li>
-    <li><strong>合规 checklist</strong>：repo 公开且首 commit 在 10:45 后 ✓ 代码 ≥40% Jac（.cl.jac 前端帮大忙）✓ star jac repo（全队都去点）✓ 视频 ≤1:30 ✓。</li>
-    <li><strong>风险 + fallback</strong>：byLLM/jac-scale 有已知 runtime bug（上届 Persist 踩过，直连 API 绕过照样获奖）；jachammer 无公开文档 → 14:00 前问 mentor；Jac 语法生 → 用 <a href="https://jac-gpt.jaseci.org">jac-gpt</a> + Discord，只用文档里有的特性，别赌冷门语法。</li>
+    <li><strong>伦理答辩预案</strong>（评委必问）："这是监控吗？"→ 主口径按顺序：① 家属/监护人（POA）授权（对认知障碍患者这才是有效同意，别拿长按开关当同意）；② 佩戴有明显标识，访客可见；③ 系统不录制不存储任何音频，只保留识别文字（识别由浏览器引擎完成，Chrome 为云端识别——被问就如实说，roadmap 是 whisper.cpp 全本地）；④ AI 只起草、人确认，报警是提示不是诊断（不碰医疗器械红线）；⑤ 可私有部署。<strong>撞车答辩</strong>（评委说"记忆图 GraphClaw 做过了"）：一句话——"GraphClaw 帮 agent 记住事实，CareGraph 测量一个人遗忘的速度：同一批 walker 在时间窗上重跑做纵向退化检测，这是监测系统不是记忆助理。"</li>
+    <li><strong>合规 checklist</strong>：repo 公开且首 commit 在 10:45 后 ✓ 代码 ≥40% Jac（前端刻意保持轻量 vanilla JS 保护占比）✓ star jac repo（全队都去点）✓ 视频按 ≤90 秒制作（guide 没写上限，以 Devpost 表单为准，90 秒在任何上限下都安全）。<strong>⚠️ 官方原话"detailed rubric will be shared on Discord"——立刻去 Discord 拿细则</strong>，核对：Use of Jac 是否有最低分门槛、视频长度、Best JacHammer 判法。</li>
+    <li><strong>风险 + fallback</strong>：① byLLM runtime bug（上届 Persist 踩过，直连 API 绕过照样获奖；Best Demo 得主 PharmaGraph 甚至 demo 路径全用确定性逻辑）→ 我们留了 CAREGRAPH_MOCK_LLM 保险丝；② <strong>Web Speech 要 secure context</strong>——手机连局域网 http 拿不到麦克风，方案 = cloudflared HTTPS 隧道 / jachammer 部署地址 / 兜底在演示笔记本 localhost 开 patient.html（localhost 算 secure context）；③ 浏览器连续识别会自停，代码已做 onend 自动重启；④ Jac 语法只用 docs/recon 里验证过的写法 + <code>jac guide</code> 离线手册，别赌冷门语法。</li>
     <li><strong>明确不做</strong>：摄像头/拍照、锁屏后台运行、native app、登录/多租户、医生专业输入、真实患者数据。有人想加 = 指着执行计划表最后一行拒绝。</li>
     <li><strong>"完成"的定义</strong>：18:40 时哪怕一半功能是 stub，1:30 视频里的路径必须丝滑。视频路径神圣不可侵犯，其他一切可牺牲。</li>
   </ol>
