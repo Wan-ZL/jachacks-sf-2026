@@ -9,11 +9,11 @@
   .page { max-width: 820px; margin: 0 auto; padding: 40px 16px 24px; }
   .home {
     position: fixed; top: 12px; left: 14px; z-index: 5;
-    font-size: 13px; color: var(--ink-2); text-decoration: none;
-    padding: 6px 8px; opacity: 0.65;
+    font-size: 13px; color: var(--ink); text-decoration: none;
+    padding: 6px 8px; opacity: 0.45;
     transition: opacity 0.2s;
   }
-  .home:hover, .home:focus-visible { opacity: 1; color: var(--blue); }
+  .home:hover, .home:focus-visible { opacity: 1; color: var(--apricot); }
   header.report h1 { margin-bottom: 2px; }
   .toolbar { display: flex; gap: 10px; margin: 14px 0 18px; }
   .summary h2 { margin-top: 1em; }
@@ -27,13 +27,15 @@
   .legend .k-repeat::before { background: var(--blue); }
   .legend .k-conf::before { background: var(--red); }
   svg text { font-family: inherit; font-size: 12px; fill: var(--ink-2); }
-  .gridline { stroke: #e6e8ee; stroke-width: 1; }
-  .axisline { stroke: #c9cdd8; stroke-width: 1; }
+  .gridline { stroke: #ece3d1; stroke-width: 1; }
+  .axisline { stroke: #d6c9b2; stroke-width: 1; }
   .provenance { font-size: 0.82rem; }
   @media print {
     body { background: #fff; }
     .btn, .toolbar, .home { display: none !important; }
-    .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+    .card { background: #fff; box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+    .gridline { stroke: #e6e8ee; }
+    .axisline { stroke: #c9cdd8; }
   }
 </style>
 </head>

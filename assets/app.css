@@ -1,15 +1,21 @@
-/* CareGraph shared styles */
+/* CareGraph shared styles — Morning Light */
 :root {
-  --gold: #f4b400;
+  --gold: #e8a13c;
   --blue: #4285f4;
-  --green: #34a853;
+  --green: #6f9e5f;
   --purple: #9c6ade;
   --red: #ea4335;
-  --gray: #9aa0b4;
-  --ink: #1f2430;
-  --ink-2: #5b6270;
-  --bg: #f6f7f9;
-  --surface: #ffffff;
+  --gray: #b0a48e;
+  --ink: #4a3f33;
+  --ink-2: #8a7a66;
+  --bg: #f6f1e7;
+  --surface: #fffdf7;
+  /* Morning Light tokens */
+  --cream-bg: linear-gradient(180deg, #f6f1e7 0%, #efe7d8 100%);
+  --card: #fffdf7;
+  --card-2: #f9f3e7;
+  --apricot: #e08c3e;
+  --verified: #6f9e5f;
 }
 
 * { box-sizing: border-box; }
@@ -20,20 +26,21 @@ body {
   font-size: 16px;
   line-height: 1.55;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--cream-bg);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5em; }
+h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5em; font-weight: 700; }
 h1 { font-size: 1.5rem; }
 h2 { font-size: 1.15rem; }
 p { margin: 0 0 0.75em; }
-a { color: var(--blue); }
+a { color: var(--apricot); }
 
 .card {
-  background: var(--surface);
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(20, 24, 40, 0.08), 0 1px 2px rgba(20, 24, 40, 0.05);
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(120, 90, 50, 0.10);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -45,18 +52,19 @@ a { color: var(--blue); }
   padding: 12px 22px;
   font-size: 1rem;
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
-  background: var(--blue);
+  background: linear-gradient(180deg, #eda766 0%, #e08c3e 100%);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   touch-action: manipulation;
+  box-shadow: 0 4px 14px rgba(120, 90, 50, 0.18);
 }
 .btn:hover { filter: brightness(1.06); }
 .btn:active { filter: brightness(0.94); }
-.btn:disabled { background: var(--gray); cursor: default; }
-.btn.secondary { background: var(--surface); color: var(--ink); border: 1px solid #d7dae2; }
+.btn:disabled { background: var(--gray); cursor: default; box-shadow: none; }
+.btn.secondary { background: #f1e9da; color: var(--ink); box-shadow: none; }
 
 .muted { color: var(--ink-2); }
 

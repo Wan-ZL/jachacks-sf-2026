@@ -9,7 +9,7 @@
   html, body { height: 100%; margin: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #fafaf8; color: #444;
+    background: var(--cream-bg); background-attachment: fixed; color: var(--ink);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     -webkit-user-select: none; user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -18,12 +18,12 @@
   #bigbtn {
     width: 60vmin; height: 60vmin; border-radius: 50%;
     border: none; outline: none; cursor: pointer;
-    background: #e4e4e2; color: #6b6b68;
+    background: #fffdf7; color: #6b5d4b;
     font-size: calc(12px + 2.4vmin); font-family: inherit;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 28px rgba(120,90,50,0.12);
     transition: background 0.4s ease, color 0.4s ease;
   }
-  #bigbtn:focus-visible { box-shadow: 0 0 0 4px #b8d4c2, 0 4px 24px rgba(0,0,0,0.08); }
+  #bigbtn:focus-visible { box-shadow: 0 0 0 4px #b8d4c2, 0 8px 28px rgba(120,90,50,0.12); }
   #bigbtn.recording {
     background: #cfe8d6; color: #3d6b4c;
     animation: pulse 2.4s ease-in-out infinite;
@@ -33,41 +33,46 @@
     50%      { box-shadow: 0 0 0 4vmin rgba(111, 173, 134, 0.0); }
   }
   #hint {
-    min-height: 1.5em; margin-top: 3vmin; font-size: 15px; color: #b0aead;
+    min-height: 1.5em; margin-top: 3vmin; font-size: 15px; color: #a99878;
     opacity: 0; transition: opacity 0.5s;
   }
   #hint.show { opacity: 1; }
+  #lastline.interim { opacity: .55; font-style: italic; }
   #lastline {
     position: fixed; bottom: 64px; left: 0; right: 0; text-align: center;
-    padding: 0 24px; font-size: 14px; color: #c2c0be; font-style: italic;
+    padding: 0 24px; font-size: 14px; color: #baab90; font-style: italic;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   #toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    background: #eef6f0; color: #4a7a5a; font-size: 13px;
-    padding: 6px 16px; border-radius: 16px;
+    background: #fffdf7; color: #4a7a5a; font-size: 13px;
+    padding: 6px 16px; border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(120,90,50,0.10);
     opacity: 0; transition: opacity 0.4s; pointer-events: none;
   }
   #toast.show { opacity: 1; }
   #fallback { display: none; text-align: center; padding: 0 24px; }
-  #fallback p { color: #8a8886; font-size: 15px; }
+  #fallback p { color: #8a7a66; font-size: 15px; }
   #fallback input {
     font-size: 18px; padding: 14px 16px; width: min(70vw, 380px);
-    border: 1px solid #d8d6d4; border-radius: 12px; font-family: inherit;
+    border: none; border-radius: 12px; font-family: inherit;
+    background: #fffdf7; color: #4a3f33;
+    box-shadow: 0 4px 20px rgba(120,90,50,0.10);
   }
   #fallback button {
     font-size: 18px; padding: 14px 28px; margin-left: 8px;
     border: none; border-radius: 12px; background: #cfe8d6; color: #3d6b4c;
     cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 20px rgba(120,90,50,0.10);
   }
   footer {
     position: fixed; bottom: 16px; left: 0; right: 0; text-align: center;
-    font-size: 12px; color: #cfcdcb; padding: 0 24px;
+    font-size: 12px; color: #c3b499; padding: 0 24px;
   }
   #home {
     position: fixed; top: 14px; left: 14px; z-index: 5;
-    font-size: 13px; color: #b0aead; text-decoration: none;
-    padding: 6px 8px; opacity: 0.5;
+    font-size: 13px; color: #4a3f33; text-decoration: none;
+    padding: 6px 8px; opacity: 0.4;
     transition: opacity 0.3s;
   }
   #home:hover, #home:focus-visible { opacity: 1; }
@@ -132,7 +137,7 @@ async function callWalker(name, body = {}) {
 const qs = new URLSearchParams(location.search);
 if (qs.get('api')) localStorage.setItem('api', qs.get('api'));
 
-const BATCH_MS = parseInt(qs.get('batch') || '10000');
+const BATCH_MS = parseInt(qs.get('batch') || '4000');
 const LANG = qs.get('lang') || 'en-US';
 
 const btn = document.getElementById('bigbtn');
@@ -186,15 +191,22 @@ const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
 function startRecognition() {
   rec = new SR();
   rec.continuous = true;
-  rec.interimResults = false;
+  rec.interimResults = true;
   rec.lang = LANG;
   rec.onresult = ev => {
+    // Stream: interim hypotheses render live (grey italic); finals solidify
+    // and enter the ship buffer. Only finals are ever sent to the server.
+    let interim = '';
     for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const t = ev.results[i][0].transcript;
       if (ev.results[i].isFinal) {
-        const line = ev.results[i][0].transcript.trim();
-        if (line) { buffer.push(line); lastline.textContent = line; }
+        const line = t.trim();
+        if (line) { buffer.push(line); lastline.textContent = line; lastline.classList.remove('interim'); }
+      } else {
+        interim += t;
       }
     }
+    if (interim.trim()) { lastline.textContent = interim.trim(); lastline.classList.add('interim'); }
   };
   rec.onend = () => {
     // Chrome halts recognition periodically — restart while recording
