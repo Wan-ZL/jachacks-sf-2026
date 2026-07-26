@@ -1,13 +1,15 @@
 /* CareGraph shared styles — Morning Light */
 :root {
-  --gold: #e8a13c;
-  --blue: #4285f4;
-  --green: #6f9e5f;
-  --purple: #9c6ade;
-  --red: #ea4335;
-  --gray: #b0a48e;
+  --gold: #e8a13c;          /* chrome only (wordmark, status dot) */
+  /* Data colours — validated OKLab dE + deutan/protan/tritan + WCAG on cream.
+     Used by the doctor trend chart and any data mark outside the D3 graph. */
+  --blue: #2A6FA8;          /* was #4285f4 — the one cold spot on a warm page */
+  --green: #2FA37A;
+  --purple: #dd8a4e;        /* was #9c6ade — chrome accent, warmed to match */
+  --red: #C0392B;           /* was #ea4335 — matches the graph's Signal red */
+  --gray: #746D69;          /* OKLab hue 54deg — same warm axis as the accent */
   --ink: #4a3f33;
-  --ink-2: #8a7a66;
+  --ink-2: #7A6A5C;         /* was #8a7a66 (3.71:1) — now 4.62:1, passes AA */
   --bg: #f6f1e7;
   --surface: #fffdf7;
   /* Morning Light tokens */

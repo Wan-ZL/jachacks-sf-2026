@@ -436,12 +436,48 @@ function fmtDay(ts) {
 }
 
 /* ---------- D3 graph ---------- */
-const COLORS = { Patient: '#f4b400', Person: '#4285f4', Fact: '#34a853', Event: '#9c6ade',
-                 Signal: '#ea4335', Entry: '#9aa0b4', Report: '#ff8f00' };
-const RADIUS = t => t === 'Patient' ? 22 : t === 'Entry' ? 5 : 10;
+// Morning Light data palette. Validated (OKLab dE + deutan/protan/tritan sim + WCAG)
+// against surface #fffaf4: all 4 categorical hues pass lightness, chroma, CVD and
+// contrast. Entry/Report are deliberately neutral -- "Other", not a category.
+// Semantics: red = trouble, jade = intact, blue = people, gold = her.
+// Entry/Report neutral is #746D69: OKLab hue 54deg, the same warm axis as the
+// Morning Light accent #dd8a4e (54.9deg) — a dark point on that axis, not a random
+// grey. The lighter #A89684 was 2.75:1 (under 3) and collided with the jade under
+// protanopia at dE 1.7.
+const COLORS = { Patient: '#A87A10', Person: '#2A6FA8', Fact: '#2FA37A', Event: '#2FA37A',
+                 Signal: '#C0392B', Entry: '#746D69', Report: '#746D69' };
 
-document.getElementById('legend').innerHTML = Object.entries(COLORS)
-  .map(([t, c]) => `<span class="lg"><i style="background:${c}"></i>${t}</span>`).join('');
+// Positive signals must not wear the alarm red -- positive_recall is the one node
+// proving this isn't a doom meter. Reuses the Knowledge jade (no new hue to validate).
+const SIGNAL_COLOR = { positive_recall: '#2FA37A', social_moment: '#2FA37A' };
+const nodeColor = d =>
+  (d.type === 'Signal' && SIGNAL_COLOR[d.kind]) || COLORS[d.type] || '#746D69';
+
+// 43 of ~82 nodes are Signals, 34 of them repeat_question. Rendering them all at
+// full size drowns the graph. Only the signals worth looking at individually stay
+// loud; the repeats recede into a faint ring -- which reads as "she is stuck on the
+// same question" without hiding the genuinely new events.
+const LOUD_KINDS = new Set(['name_confusion', 'disorientation', 'positive_recall']);
+const isLoud = d => d.type !== 'Signal' || LOUD_KINDS.has(d.kind);
+
+const RADIUS = d => {
+  if (d.type === 'Patient') return 22;
+  if (d.type === 'Entry')   return 3;
+  if (d.type === 'Report')  return 8;
+  if (d.type === 'Signal')  return isLoud(d) ? 13 : 4;
+  return 10;
+};
+const NODE_OPACITY = d =>
+  d.type === 'Entry' ? 0.22 :
+  (d.type === 'Signal' && !isLoud(d)) ? 0.32 : 1;
+const SHOW_LABEL = d => !(d.type === 'Entry' || (d.type === 'Signal' && !isLoud(d)));
+
+// Legend follows the semantics, not the seven raw node types (Fact and Event share
+// a hue on purpose -- they are both "things she knows").
+document.getElementById('legend').innerHTML = [
+  ['Margaret', '#A87A10'], ['People', '#2A6FA8'], ['What she knows', '#2FA37A'],
+  ['Warning signs', '#C0392B'], ['Raw records', '#746D69']
+].map(([t, c]) => `<span class="lg"><i style="background:${c}"></i>${t}</span>`).join('');
 
 const svg = d3.select('#graph');
 const zoomG = svg.append('g');
@@ -454,7 +490,7 @@ let W = pane.clientWidth || 800, H = pane.clientHeight || 600;
 const sim = d3.forceSimulation()
   .force('charge', d3.forceManyBody().strength(-180))
   .force('link', d3.forceLink().id(d => d.id).distance(70))
-  .force('collide', d3.forceCollide().radius(d => RADIUS(d.type) + 6))
+  .force('collide', d3.forceCollide().radius(d => RADIUS(d) + 6))
   .force('center', d3.forceCenter(W / 2, H / 2))
   .on('tick', () => {
     gLink.selectAll('line')
@@ -507,20 +543,25 @@ function updateGraph(data) {
     .join(enter => {
       const g = enter.append('g').attr('class', 'node').style('cursor', 'pointer').call(drag());
       g.append('circle')
-        .attr('r', d => RADIUS(d.type))
-        .attr('fill', d => COLORS[d.type] || '#9aa0b4')
-        .attr('stroke', '#fff').attr('stroke-width', 1.5);
+        .attr('r', RADIUS)
+        .attr('fill', nodeColor)
+        .attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
       g.append('text')
-        .attr('dy', d => RADIUS(d.type) + 12).attr('text-anchor', 'middle')
-        .attr('font-size', 10).attr('fill', '#5b6472')
+        .attr('dy', d => RADIUS(d) + 12).attr('text-anchor', 'middle')
+        .attr('font-size', 10).attr('fill', '#7A6A5C')
         .style('pointer-events', 'none');
       g.append('title');
       return g;
     });
-  nodeSel.select('text').text(d => {
-    const l = d.label || d.name || '';
-    return l.length > 18 ? l.slice(0, 17) + '…' : l;
-  });
+  nodeSel.attr('opacity', NODE_OPACITY);
+  nodeSel.select('circle').attr('r', RADIUS).attr('fill', nodeColor);
+  nodeSel.select('text')
+    .attr('display', d => SHOW_LABEL(d) ? null : 'none')
+    .attr('dy', d => RADIUS(d) + 12)
+    .text(d => {
+      const l = d.label || d.name || '';
+      return l.length > 18 ? l.slice(0, 17) + '…' : l;
+    });
   nodeSel.select('title').text(d => (d.type || '') + ': ' + (d.label || ''));
 
   const changed = fresh.length > 0 ||
@@ -544,10 +585,10 @@ function flashNode(id) {
   const sel = gNode.selectAll('g.node').filter(d => d.id === id).select('circle');
   if (sel.empty()) return;
   const r0 = +sel.attr('r');
-  sel.transition().duration(350).attr('r', r0 * 2.2).attr('stroke', '#f4b400').attr('stroke-width', 4)
+  sel.transition().duration(350).attr('r', r0 * 2.2).attr('stroke', '#dd8a4e').attr('stroke-width', 4)
      .transition().duration(350).attr('r', r0)
      .transition().duration(350).attr('r', r0 * 1.8)
-     .transition().duration(400).attr('r', r0).attr('stroke', '#fff').attr('stroke-width', 1.5);
+     .transition().duration(400).attr('r', r0).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
 }
 
 async function pollGraph() {
@@ -571,7 +612,7 @@ async function runReplay(path) {
     if (hit.empty()) continue;               // id not in current graph — skip gracefully
     hit.attr('opacity', 1);
     const c = hit.select('circle');
-    const r0 = RADIUS(hit.datum().type);
+    const r0 = RADIUS(hit.datum());
     c.transition().duration(250).attr('r', r0 * 1.9).attr('stroke', '#1a2233').attr('stroke-width', 3);
     if (prev !== null) {
       linkSel.filter(d => {
@@ -583,9 +624,11 @@ async function runReplay(path) {
     await sleep(400);
   }
   await sleep(1400);
-  nodeSel.attr('opacity', 1);
+  // restore the degraded state, not a flat opacity:1 — otherwise every question
+  // permanently un-dims the 39 repeat_question dots and the graph drowns again
+  nodeSel.attr('opacity', NODE_OPACITY);
   nodeSel.select('circle').transition().duration(400)
-    .attr('r', d => RADIUS(d.type)).attr('stroke', '#fff').attr('stroke-width', 1.5);
+    .attr('r', RADIUS).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
   linkSel.attr('stroke', '#b6bdc9').attr('opacity', linkBaseOpacity);
   replaying = false;
 }
@@ -628,11 +671,13 @@ document.getElementById('answerClose').addEventListener('click', () => {
 });
 
 /* ---------- Alerts strip ---------- */
+// Status colours are reserved and never reused as categorical hues. `low` covers
+// positive_recall / social_moment, so it must not read as an alarm — jade, not blue.
 const SEV_COLOR = s => {
   s = String(s || '').toLowerCase();
-  if (s === 'high' || s === 'critical' || s === 'severe') return '#ea4335';
-  if (s === 'medium' || s === 'moderate' || s === 'warn') return '#f4b400';
-  return '#4285f4';
+  if (s === 'high' || s === 'critical' || s === 'severe') return '#C0392B';
+  if (s === 'medium' || s === 'moderate' || s === 'warn') return '#B4762A';
+  return '#2FA37A';
 };
 async function loadAlerts() {
   const box = document.getElementById('alertsBody');
