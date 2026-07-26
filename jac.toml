@@ -2,6 +2,9 @@
 name = "caregraph"
 version = "0.1.0"
 entry_point = "main.jac"
+# Pure API service: all UI is static files in assets/ served by the same jac
+# server — no client codespace, no npm/vite pipeline needed.
+kind = "api-service"
 
 [serve]
 port = 8000
