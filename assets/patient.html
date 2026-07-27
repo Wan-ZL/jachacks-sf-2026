@@ -77,16 +77,50 @@
   #home {
     position: fixed; top: 14px; left: 14px; z-index: 5;
     font-size: 13px; color: #4a3f33; text-decoration: none;
-    padding: 6px 8px; opacity: 0.4;
+    padding: 6px 10px; opacity: 0.4;
     transition: opacity 0.3s;
+    border-radius: 999px; overflow: hidden;
   }
   #home:hover, #home:focus-visible { opacity: 1; }
   #home.holding, #fallback button.holding { opacity: 1; transform: scale(.96); }
+
+  /* Long-press affordance: holding sweeps colour across the control, so a
+     quick tap that "does nothing" still shows the press was registered and
+     that it needs to be held. Same visual family as the recording pulse. */
+  .lp { position: relative; isolation: isolate; }
+  .lp::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: #cfe8d6; border-radius: inherit;
+    transform: scaleX(0); transform-origin: left center;
+    transition: transform .12s ease-out, opacity .3s;
+    opacity: 0;
+  }
+  .lp.holding::before {
+    opacity: 1;
+    transform: scaleX(1);
+    transition: transform .6s linear, opacity .1s;   /* matches HOLD_MS */
+  }
+  .lp.lp-done::before {
+    opacity: 0; transform: scaleX(1);
+    transition: opacity .45s ease-out;
+  }
+  /* Released too early: a nudge that says "keep holding". */
+  @keyframes lpNudge {
+    0%, 100% { transform: none; }
+    35% { transform: translateX(-3px); }
+    70% { transform: translateX(3px); }
+  }
+  .lp.lp-short { animation: lpNudge .3s ease-in-out; }
+  #home .lp-tip {
+    display: inline-block; margin-left: 6px; font-size: 11px; color: #6f9e5f;
+    opacity: 0; transition: opacity .25s;
+  }
+  #home.lp-short .lp-tip { opacity: 1; }
 </style>
 </head>
 <body>
 
-<a id="home" href="/static/home.html" title="Hold to go home">‹ Memory Book</a>
+<a id="home" href="/static/home.html" title="Hold to go home">‹ Memory Book<span class="lp-tip">hold</span></a>
 
 <div id="toast">✓ remembered</div>
 
@@ -301,17 +335,38 @@ if (!SR) {
 
 // Anti-mistouch: every control on the patient page requires a LONG PRESS
 // (600ms) — including the home link and the fallback send button.
+// (HOLD_MS is the same 600ms threshold the big listen button uses.)
 function longPressify(el, action) {
   if (!el) return;
   let t = null;
-  const cancel = () => { if (t) { clearTimeout(t); t = null; el.classList.remove('holding'); } };
+  el.classList.add('lp');
+  const stopFill = () => { el.classList.remove('holding'); };
+  const cancel = (short) => {
+    if (!t) return;
+    clearTimeout(t); t = null;
+    stopFill();
+    if (short) {                       // released early — say so, don't stay silent
+      el.classList.remove('lp-short');
+      void el.offsetWidth;             // restart the animation
+      el.classList.add('lp-short');
+      setTimeout(() => el.classList.remove('lp-short'), 1400);
+    }
+  };
   el.addEventListener('click', e => e.preventDefault());
   el.addEventListener('pointerdown', e => {
     e.preventDefault();
+    el.classList.remove('lp-done', 'lp-short');
     el.classList.add('holding');
-    t = setTimeout(() => { cancel(); action(); }, 600);
+    t = setTimeout(() => {
+      t = null;
+      stopFill();
+      el.classList.add('lp-done');     // fill completes, then fades = "it fired"
+      setTimeout(() => el.classList.remove('lp-done'), 500);
+      action();
+    }, HOLD_MS);
   });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, cancel));
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev =>
+    el.addEventListener(ev, () => cancel(true)));
 }
 longPressify(document.getElementById('home'), () => { location.href = "/static/home.html"; });
 
