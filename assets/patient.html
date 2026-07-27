@@ -72,6 +72,13 @@
   #lastline .tl.old2 { opacity: .60; }
   #lastline .tl.old1 { opacity: .80; }
   #lastline .tl.interim { opacity: .55; font-style: italic; color: #baab90; }
+  /* A sentence that just went final slides up into place — the caption block
+     reads as a live stream, not a log that gets rewritten. */
+  #lastline .tl.tl-new { animation: tlIn .45s ease-out; }
+  @keyframes tlIn {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { transform: none; }
+  }
   #toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     background: #fffdf7; color: #4a7a5a; font-size: 13px;
@@ -79,7 +86,11 @@
     box-shadow: 0 4px 20px rgba(120,90,50,0.10);
     opacity: 0; transition: opacity 0.4s; pointer-events: none;
   }
-  #toast.show { opacity: 1; }
+  #toast.show { opacity: 1; animation: toastPop .38s cubic-bezier(.2,.9,.3,1.4); }
+  @keyframes toastPop {
+    0% { transform: translateX(-50%) scale(.78); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
   #fallback { display: none; text-align: center; padding: 0 24px; }
   #fallback p { color: #8a7a66; font-size: 15px; }
   #fallback input {
@@ -211,11 +222,15 @@ const lastline = document.getElementById('lastline');
 // Rolling captions: last 4 final lines + the live interim line (5 max);
 // older lines fade upward and vanish.
 const tlFinals = [];
+let tlSeen = 0;    // finals count at last render — only a genuinely NEW final animates
 function renderTranscript(interim) {
+  const isNew = tlFinals.length > tlSeen;
+  tlSeen = tlFinals.length;
   const finals = tlFinals.slice(interim && interim.trim() ? -4 : -5);
   const parts = finals.map((l, i) => {
     const age = finals.length - i;  // 1 = newest final
-    return '<div class="tl old' + age + '">' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>';
+    const anim = (isNew && i === finals.length - 1) ? ' tl-new' : '';
+    return '<div class="tl old' + age + anim + '">' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>';
   });
   if (interim && interim.trim()) {
     parts.push('<div class="tl interim">' + interim.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>');

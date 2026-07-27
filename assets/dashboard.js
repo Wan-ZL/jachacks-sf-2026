@@ -137,6 +137,12 @@ const svg = d3.select('#graph');
 const zoomG = svg.append('g');
 const gLink = zoomG.append('g');
 const gNode = zoomG.append('g');
+const gPulse = zoomG.append('g').style('pointer-events', 'none');   // travelling dots ride on top
+// Off-screen path used only to sample points along an arc — never painted.
+const measurePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+gPulse.node().appendChild(measurePath);
+measurePath.setAttribute('fill', 'none');
+measurePath.setAttribute('stroke', 'none');
 svg.call(d3.zoom().scaleExtent([0.25, 4]).on('zoom', e => zoomG.attr('transform', e.transform)));
 
 const pane = document.getElementById('graphPane');
@@ -186,6 +192,54 @@ const TIER_OPACITY = [0.04, 0.18, 0.78];
 const TIER_WIDTH = [0.6, 1, 1.7];
 const linkBaseOpacity = d => TIER_OPACITY[linkTier(d)];
 
+/* ---------- Growth animations ----------
+   A memory graph that gains nodes by teleporting them in reads as a page
+   refresh. Three things make it read as growth instead: new nodes are born
+   at the position of whatever they hang off, they scale up from nothing,
+   and their edges draw themselves outward.                              */
+
+// Edge draws itself from source to target. Sampled once, at call time — the
+// simulation keeps moving underneath, which is fine: the line still grows.
+function drawInLink(el) {
+  let len = 0;
+  try { len = el.getTotalLength(); } catch (e) { return; }
+  if (!len || !isFinite(len)) return;
+  d3.select(el)
+    .attr('stroke-dasharray', len + ' ' + len)
+    .attr('stroke-dashoffset', len)
+    .transition().duration(620).ease(d3.easeCubicOut)
+    .attr('stroke-dashoffset', 0)
+    .on('end interrupt', function () {
+      d3.select(this).attr('stroke-dasharray', null).attr('stroke-dashoffset', null);
+    });
+}
+
+// A lit dot travelling source -> target: the moment a spoken sentence turns
+// into knowledge, made literal. Re-samples the arc every frame so it tracks
+// nodes that are still settling.
+function pulseAlong(aId, bId, color, delay) {
+  setTimeout(() => {
+    const a = nodesById.get(aId), b = nodesById.get(bId);
+    if (!a || !b || a.x == null || b.x == null) return;
+    const dot = gPulse.append('circle')
+      .attr('r', 4.5).attr('fill', color || '#dd8a4e').attr('opacity', 0.95);
+    const dur = 850;
+    const timer = d3.timer(elapsed => {   // d3.timer hands us elapsed-ms, from 0
+      const t = Math.min(1, elapsed / dur);
+      let p = { x: a.x, y: a.y };
+      try {
+        measurePath.setAttribute('d', linkArc({ source: a, target: b }));
+        const L = measurePath.getTotalLength();
+        if (L && isFinite(L)) p = measurePath.getPointAtLength(L * t);
+      } catch (e) {}
+      dot.attr('cx', p.x).attr('cy', p.y)
+         .attr('r', 4.5 * (1 - 0.45 * t))
+         .attr('opacity', 0.95 * (1 - t * t));
+      if (t >= 1) { timer.stop(); dot.remove(); }
+    });
+  }, delay || 0);
+}
+
 function drag() {
   return d3.drag()
     .on('start', (e, d) => { dragging = true; if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
@@ -206,10 +260,32 @@ function updateGraph(data) {
   const fresh = knownIds.size ? nodes.filter(n => !knownIds.has(n.id)) : [];
   knownIds = new Set(nodes.map(n => n.id));
 
+  // Born where they belong: a new node starts at whichever neighbour already
+  // has a position, so it appears to split off rather than fly in from the
+  // corner. (d3 only auto-places nodes whose x/y are still unset.)
+  if (fresh.length) {
+    const freshIds = new Set(fresh.map(n => n.id));
+    for (const n of fresh) {
+      let anchor = null;
+      for (const l of links) {
+        const s = l.source, t = l.target;
+        if (s === n.id && !freshIds.has(t)) anchor = nodesById.get(t);
+        else if (t === n.id && !freshIds.has(s)) anchor = nodesById.get(s);
+        if (anchor && anchor.x != null) break;
+        anchor = null;
+      }
+      if (!anchor || anchor.x == null) anchor = nodes.find(m => m.type === 'Patient' && m.x != null);
+      if (anchor && anchor.x != null) {
+        n.x = anchor.x + (Math.random() - 0.5) * 14;
+        n.y = anchor.y + (Math.random() - 0.5) * 14;
+        n.vx = 0; n.vy = 0;
+      }
+    }
+  }
+
   gLink.selectAll('path')
     .data(links, d => (d.source.id ?? d.source) + '|' + (d.target.id ?? d.target) + '|' + d.type)
-    .join('path')
-    .attr('fill', 'none')
+    .join(enter => enter.append('path').attr('fill', 'none').classed('newlink', true))
     .attr('stroke', LINK_COLOR)
     .attr('stroke-width', d => TIER_WIDTH[linkTier(d)])
     .attr('opacity', linkBaseOpacity);
@@ -246,8 +322,25 @@ function updateGraph(data) {
   sim.force('link').links(links);
   if (changed) sim.alpha(0.6).restart();   // only reheat when the graph actually grew/shrank
 
-  fresh.forEach(n => flashNode(n.id));
+  // New edges draw themselves outward — but only when the graph GREW. On the
+  // first paint every edge is "new" and 200 of them drawing at once is noise.
+  const newPaths = gLink.selectAll('path.newlink');
+  if (fresh.length) newPaths.attr('d', linkArc).each(function () { drawInLink(this); });
+  newPaths.classed('newlink', false);
+
+  fresh.forEach(n => flashNode(n.id, true));
   if (fresh.length) {                      // graph grew — refresh the tier columns too
+    // Watch the sentence become knowledge: a lit dot runs from each new raw
+    // moment out to every person/fact/signal it just created.
+    const freshIds = new Set(fresh.map(n => n.id));
+    let k = 0;
+    for (const l of links) {
+      if (!freshIds.has(l.source)) continue;
+      const src = nodesById.get(l.source), tgt = nodesById.get(l.target);
+      if (!src || !tgt || src.type !== 'Entry') continue;
+      pulseAlong(l.source, l.target, nodeColor(tgt), 320 + (k++) * 130);
+      if (k >= 5) break;                   // a handful reads as flow; twenty reads as static
+    }
     clearTimeout(tlDebounce);
     tlDebounce = setTimeout(loadTimeline, 800);
   }
@@ -256,10 +349,23 @@ function updateGraph(data) {
   if (p) setPatient(p.label || p.name || '');
 }
 
-function flashNode(id) {
-  const sel = gNode.selectAll('g.node').filter(d => d.id === id).select('circle');
+function flashNode(id, born) {
+  const g = gNode.selectAll('g.node').filter(d => d.id === id);
+  const sel = g.select('circle');
   if (sel.empty()) return;
-  const r0 = +sel.attr('r');
+  const r0 = RADIUS(g.datum());
+  if (born) {
+    // Scale up out of nothing with a little overshoot, then settle into the
+    // usual attention flash. One transition chain — no fighting over `r`.
+    g.attr('opacity', 0);
+    sel.attr('r', 0).attr('stroke', '#dd8a4e').attr('stroke-width', 3);
+    g.transition().duration(420).attr('opacity', NODE_OPACITY(g.datum()));
+    sel.transition().duration(460).ease(d3.easeBackOut.overshoot(2.2)).attr('r', r0 * 1.55)
+       .transition().duration(320).attr('r', r0)
+       .transition().duration(300).attr('r', r0 * 1.5)
+       .transition().duration(420).attr('r', r0).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
+    return;
+  }
   sel.transition().duration(350).attr('r', r0 * 2.2).attr('stroke', '#dd8a4e').attr('stroke-width', 4)
      .transition().duration(350).attr('r', r0)
      .transition().duration(350).attr('r', r0 * 1.8)
@@ -268,8 +374,14 @@ function flashNode(id) {
 
 async function pollGraph() {
   if (replaying || dragging) return;
-  try { updateGraph(await callWalker('graph_snapshot')); }
-  catch (e) { console.warn('snapshot failed:', e.message); }
+  try {
+    updateGraph(await callWalker('graph_snapshot'));
+    const hb = document.getElementById('hb');           // heartbeat: poll landed
+    hb.classList.remove('off', 'beat'); void hb.offsetWidth; hb.classList.add('beat');
+  } catch (e) {
+    document.getElementById('hb').classList.add('off'); // grey = backend lost
+    console.warn('snapshot failed:', e.message);
+  }
 }
 pollGraph();
 setInterval(pollGraph, 5000);
@@ -277,6 +389,7 @@ setInterval(pollGraph, 5000);
 /* ---------- Ask + spotlight replay ---------- */
 async function runReplay(path) {
   replaying = true;
+  pane.classList.add('replaying');          // vignette on — it's a spotlight now
   const nodeSel = gNode.selectAll('g.node');
   const linkSel = gLink.selectAll('path');
   nodeSel.attr('opacity', 0.15);
@@ -305,9 +418,40 @@ async function runReplay(path) {
   nodeSel.select('circle').transition().duration(400)
     .attr('r', RADIUS).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
   linkSel.attr('stroke', LINK_COLOR).attr('opacity', linkBaseOpacity);
+  pane.classList.remove('replaying');
   replaying = false;
 }
 
+// Typewriter with a token guard: a newer answer silently takes over — asking
+// twice in a row never interleaves two answers character by character.
+let typeToken = 0;
+async function typeInto(el, text) {
+  const tok = ++typeToken;
+  el.textContent = '';
+  const caret = document.createElement('span');
+  caret.className = 'caret';
+  el.appendChild(caret);
+  for (const ch of String(text)) {
+    if (tok !== typeToken) return;
+    caret.insertAdjacentText('beforebegin', ch);
+    await sleep(16);
+  }
+  if (tok === typeToken) caret.remove();
+}
+// The traced-nodes counter climbs from zero while the spotlight walks the path.
+function rollEvidence(el, hops, n) {
+  const ms = 800;
+  let t0 = null;   // first rAF timestamp — never mix clock origins
+  const step = now => {
+    if (t0 === null) t0 = now;
+    const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = 1 - (1 - t) * (1 - t);
+    const nn = Math.round(n * e);
+    el.textContent = 'traced ' + Math.round(hops * e) + ' nodes · '
+      + nn + ' ' + (nn === 1 ? 'entry' : 'entries') + ' · RecallWalker';
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 async function doAsk() {
   const q = document.getElementById('askInput').value.trim();
   if (!q) return;
@@ -317,15 +461,18 @@ async function doAsk() {
     const ans = await callWalker('ask', { question: q });
     const card = document.getElementById('answerCard');
     card.style.display = 'block';
+    card.classList.remove('in'); void card.offsetWidth; card.classList.add('in');
     const n = Array.isArray(ans.evidence) ? ans.evidence.length : 0;
     const hops = Array.isArray(ans.path) ? ans.path.length : 0;
-    document.getElementById('answerText').textContent = (!hops && !n)
+    const answer = (!hops && !n)
       ? "Nothing in the memory graph matches that. Try naming a person or thing — e.g. 'Does she remember Emma?'"
       : (ans.answer || '(no answer)');
-    document.getElementById('answerEvidence').textContent =
-      'traced ' + hops + ' nodes · ' + n + ' ' + (n === 1 ? 'entry' : 'entries') + ' · RecallWalker';
+    typeInto(document.getElementById('answerText'), answer);   // deliberately not awaited —
+    rollEvidence(document.getElementById('answerEvidence'), hops, n);
     if (Array.isArray(ans.path) && ans.path.length) await runReplay(ans.path);
+    // — the answer types itself out WHILE the spotlight walks the graph.
   } catch (e) {
+    typeToken++;                            // stop any typewriter still running
     document.getElementById('answerCard').style.display = 'block';
     document.getElementById('answerText').textContent = 'Could not reach the memory graph. Is the backend running?';
     document.getElementById('answerEvidence').textContent = '';
@@ -353,13 +500,21 @@ const SEV_COLOR = s => {
   if (s === 'medium' || s === 'moderate' || s === 'warn') return '#B4762A';
   return '#2FA37A';
 };
+let knownAlertKeys = null;   // null until first paint: first load staggers in, later polls animate only newcomers
 async function loadAlerts() {
   const box = document.getElementById('alertsBody');
   try {
     const r = await callWalker('critique_alerts');
     const alerts = Array.isArray(r?.alerts) ? r.alerts : Array.isArray(r) ? r : [];
     if (!alerts.length) { box.innerHTML = '<span class="chip-none">No alerts — all steady.</span>'; return; }
+    const firstPaint = knownAlertKeys === null;
+    const prevKeys = knownAlertKeys || new Set();
+    knownAlertKeys = new Set(alerts.map(a => (a.kind || '') + '|' + (a.detail || '')));
+    let freshIdx = 0;
     box.innerHTML = alerts.map(a => {
+      const isFresh = firstPaint || !prevKeys.has((a.kind || '') + '|' + (a.detail || ''));
+      const freshAttr = isFresh
+        ? ` class="achip fresh" style="animation-delay:${(freshIdx++) * 90}ms"` : ' class="achip"';
       // The chip already shows the kind in bold — strip it from the detail,
       // whether the backend sent the raw kind or the plain-English label.
       let rate = String(a.detail || '');
@@ -371,7 +526,7 @@ async function loadAlerts() {
       const verdict = a.verdict === 'confirmed'
         ? `<span class="vok">✓ verified · ${a.evidence?.length || 0} evidence</span>`
         : a.verdict ? `<span class="vplain">${esc(a.verdict)}</span>` : '';
-      return `<span class="achip" title="CritiqueWalker · ${esc(a.detail || '')}">
+      return `<span${freshAttr} title="CritiqueWalker · ${esc(a.detail || '')}">
         <span class="sev" style="background:${SEV_COLOR(a.severity)}"></span>
         <strong>${esc(kind)}</strong>
         <span class="rate">${esc(rate)}</span>
@@ -392,9 +547,25 @@ let modalOpen = false;
 const expandedKeys = new Set();
 const CARD_REG = new Map();       // key -> {title, text, md} for the modal
 
+// Counts roll to their new value instead of swapping — a number climbing on
+// its own is the cheapest possible proof the console is live.
+const cntShown = new Map();
 function setCount(col, n) {
-  document.getElementById('cnt-' + col).textContent = n;
-  document.getElementById('railcnt-' + col).textContent = n;
+  const els = [document.getElementById('cnt-' + col), document.getElementById('railcnt-' + col)];
+  const from = cntShown.has(col) ? cntShown.get(col) : null;
+  cntShown.set(col, n);
+  if (from === null || from === n) { els.forEach(el => el.textContent = n); return; }
+  els.forEach(el => { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('rolling', 'bump'); });
+  const ms = 550;
+  let t0 = null;   // first rAF timestamp — never mix clock origins
+  const step = now => {
+    if (t0 === null) t0 = now;
+    const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = 1 - (1 - t) * (1 - t);
+    els.forEach(el => el.textContent = Math.round(from + (n - from) * e));
+    if (t < 1) requestAnimationFrame(step);
+    else els.forEach(el => { el.classList.remove('rolling'); setTimeout(() => el.classList.remove('bump'), 400); });
+  };
+  requestAnimationFrame(step);
 }
 
 function tcard(key, mtitle, headHTML, text, md, tagsHTML) {
@@ -643,7 +814,7 @@ function doctorChart(weekly) {
   const ys = v => PT + (H - PT - PB) * (1 - v / max);
   const line = k => weekly.map((w, i) => (i ? 'L' : 'M') + xs(i) + ',' + ys(+w[k] || 0)).join(' ');
   const dots = (k, col) => weekly.map((w, i) =>
-    `<circle cx="${xs(i)}" cy="${ys(+w[k] || 0)}" r="3.5" fill="${col}"/>`).join('');
+    `<circle class="chartdot" style="animation-delay:${.55 + i * .07}s" cx="${xs(i)}" cy="${ys(+w[k] || 0)}" r="3.5" fill="${col}"/>`).join('');
   const grid = [0, Math.round(max / 2), max].map(v =>
     `<line x1="${PL}" y1="${ys(v)}" x2="${W - PR}" y2="${ys(v)}" stroke="#ece3d0" stroke-width="1"/>
      <text x="${PL - 6}" y="${ys(v) + 3.5}" font-size="10" text-anchor="end" fill="#a3937d">${v}</text>`).join('');
@@ -657,8 +828,8 @@ function doctorChart(weekly) {
     </div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#fdfaf2;border-radius:12px">
       ${grid}
-      <path d="${line('repeat_q')}" fill="none" stroke="#C0392B" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="${line('confusions')}" fill="none" stroke="#2A6FA8" stroke-width="2.2" stroke-linejoin="round"/>
+      <path class="chartline" pathLength="1" d="${line('repeat_q')}" fill="none" stroke="#C0392B" stroke-width="2.2" stroke-linejoin="round"/>
+      <path class="chartline l2" pathLength="1" d="${line('confusions')}" fill="none" stroke="#2A6FA8" stroke-width="2.2" stroke-linejoin="round"/>
       ${dots('repeat_q', '#C0392B')}${dots('confusions', '#2A6FA8')}
       ${days}
     </svg>
