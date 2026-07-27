@@ -174,11 +174,11 @@ let tlDebounce = null;
 // Links are context, not content: warm-toned and faint (the design mock's
 // graph reads clean because edges nearly vanish). `mentioned` edges are the
 // hairball-makers — they drop to a whisper.
-const LINK_COLOR = '#d9cbb2';
+const LINK_COLOR = '#c2a983';
 const linkBaseOpacity = d =>
-  d.type === 'mentioned' ? 0.07 :
+  d.type === 'mentioned' ? 0.16 :
   d.type === 'remembers' && d.confidence != null
-    ? Math.max(0.10, Math.min(0.9, +d.confidence)) * 0.5 : 0.16;
+    ? Math.max(0.25, Math.min(0.95, +d.confidence)) * 0.8 : 0.35;
 
 function drag() {
   return d3.drag()
