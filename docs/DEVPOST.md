@@ -44,21 +44,24 @@ Three ends, one graph, escalating data tiers:
 
 Ask anything — "Does she remember Emma is visiting?" — and **RecallWalker** answers
 by deterministic graph traversal with a spotlight replay of the exact path it
-walked, plus the evidence entries behind it. On simulated 7-day data: 20/20 seeded
-facts recalled with evidence paths; the decline alert fires on day 5.
+walked, plus the evidence entries behind it. On the simulated 7-day corpus every
+seeded fact is recallable, and every answer arrives with a citable path back to the
+entry that produced it — traceability is a property of the traversal, not an
+accuracy score we tuned.
 
 ## How we built it — where Jac runs (rubric: walkers, graph traversal, byLLM, agentic flows)
 
-Everything that thinks is Jac (~45% of the repo, root `*.jac`):
+Everything that thinks is Jac -- the graph schema, all 13 walkers, and every line of decline logic live in the root `*.jac` files. No ORM, no database code, no API routing layer, no server framework:
 
 - **Object-spatial core**: the patient's world IS the graph — `Patient`, `Person`,
   `Fact`, `Event`, `Entry`, `Signal`, `Report` nodes; typed `remembers` edges carry
   confidence + provenance (L1 wearable 0.7 / L2 human 0.9) that **decays 0.05/day**
   unless re-mentioned.
-- **11 walkers as the agent team** (`main.jac`): ingest_batch, ask, graph_snapshot,
-  timeline, seed_load, drift_scan, **critique_alerts** (the devil's-advocate pass),
-  daily_report, handoff_draft/confirm, doctor_report. Walkers ARE our REST API
-  (`walker:pub` → POST /walker/<name>).
+- **13 walkers as the agent team** (`main.jac`): init_patient, ingest_batch, ask,
+  graph_snapshot, search_entries, timeline, seed_load, drift_scan,
+  **critique_alerts** (the devil's-advocate pass), daily_report,
+  handoff_draft/confirm, doctor_report. Walkers ARE our REST API
+  (`walker:pub` → POST /walker/<name>) — we wrote zero routing code.
 - **byLLM at the boundary only** (`llm.jac`): typed `by llm()` functions —
   `extract(batch) -> ExtractResult` with sem-constrained signal kinds,
   `phrase_answer`, `draft_report`. Claude does language; **the graph does the
@@ -109,9 +112,9 @@ diagnosis.
    spotlight traversal + evidence → Alerts strip: 3.2× repeat-question, ✓
    CritiqueWalker verified · social control flat → Draft handoff → review & confirm in the overlay
    → doctor report card → print.
-3. (60s) WHERE JAC RUNS: open main.jac on screen — 11 walkers, typed edges with
+3. (60s) WHERE JAC RUNS: open main.jac on screen — 13 walkers, typed edges with
    decaying confidence; point at the footer walker roster and the ✓ CritiqueWalker
    badge; "the graph is the database — no ORM, no SQL, walkers are the API."
-4. (30s) Numbers + close: 20/20 recall with evidence paths, day-5 alert on the
-   simulated arc. "See what she still remembers — and know the moment it starts
+4. (30s) Numbers + close: repeat questions 3.0/day baseline -> 9.5/day now (3.2x,
+   peak 11), while the social control stayed flat. "See what she still remembers — and know the moment it starts
    to fade."
