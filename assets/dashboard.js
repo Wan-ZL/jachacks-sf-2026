@@ -36,10 +36,12 @@ async function callWalker(name, body = {}) {
   const rep=(j.data&&j.data.reports)||j.reports; return rep?(rep[0]??j):j;
 }
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+let lastDayCount = 0;
 function setPatient(name, days) {
   if (!name) return;
+  if (days) lastDayCount = days;          // graph poll passes no days — keep the last known
   document.getElementById('patientName').textContent =
-    '— ' + name + (days ? ' · day ' + days : '');
+    '— ' + name + (lastDayCount ? ' · day ' + lastDayCount : '');
   document.getElementById('askInput').placeholder =
     'Ask about ' + name + '’s memory…';
 }
@@ -349,6 +351,7 @@ async function loadAlerts() {
       if (a.kind && rate.startsWith(a.kind + ':')) rate = rate.slice(a.kind.length + 1).trim();
       if (rate.startsWith(kind + ':')) rate = rate.slice(kind.length + 1).trim();
       if (rate.startsWith(kind + ' —')) rate = rate.slice(kind.length + 2).trim();
+      if (rate.length > 48) rate = rate.slice(0, 47) + '…';   // chips stay short; full text in the tooltip
       const verdict = a.verdict === 'confirmed'
         ? `<span class="vok">✓ verified · ${a.evidence?.length || 0} evidence</span>`
         : a.verdict ? `<span class="vplain">${esc(a.verdict)}</span>` : '';
