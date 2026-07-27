@@ -147,11 +147,19 @@ const sim = d3.forceSimulation()
   .force('collide', d3.forceCollide().radius(d => RADIUS(d) + 9))
   .force('center', d3.forceCenter(W / 2, H / 2))
   .on('tick', () => {
-    gLink.selectAll('line')
-      .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    gLink.selectAll('path').attr('d', linkArc);
     gNode.selectAll('g.node').attr('transform', d => `translate(${d.x},${d.y})`);
   });
+
+// Gentle arc between nodes (the design mock's soft curves — straight spokes
+// read as a wiring diagram, curves read as something organic).
+function linkArc(d) {
+  const sx = d.source.x, sy = d.source.y, tx = d.target.x, ty = d.target.y;
+  const dx = tx - sx, dy = ty - sy;
+  const dr = Math.sqrt(dx * dx + dy * dy) * 2.1;
+  if (!dr) return `M${sx},${sy}L${tx},${ty}`;
+  return `M${sx},${sy}A${dr},${dr} 0 0,1 ${tx},${ty}`;
+}
 window.addEventListener('resize', () => {
   W = pane.clientWidth; H = pane.clientHeight;
   sim.force('center', d3.forceCenter(W / 2, H / 2)).alpha(0.3).restart();
@@ -192,9 +200,10 @@ function updateGraph(data) {
   const fresh = knownIds.size ? nodes.filter(n => !knownIds.has(n.id)) : [];
   knownIds = new Set(nodes.map(n => n.id));
 
-  gLink.selectAll('line')
+  gLink.selectAll('path')
     .data(links, d => (d.source.id ?? d.source) + '|' + (d.target.id ?? d.target) + '|' + d.type)
-    .join('line')
+    .join('path')
+    .attr('fill', 'none')
     .attr('stroke', LINK_COLOR).attr('stroke-width', 1)
     .attr('opacity', linkBaseOpacity);
 
@@ -262,7 +271,7 @@ setInterval(pollGraph, 5000);
 async function runReplay(path) {
   replaying = true;
   const nodeSel = gNode.selectAll('g.node');
-  const linkSel = gLink.selectAll('line');
+  const linkSel = gLink.selectAll('path');
   nodeSel.attr('opacity', 0.15);
   linkSel.attr('opacity', 0.05);
   let prev = null;
