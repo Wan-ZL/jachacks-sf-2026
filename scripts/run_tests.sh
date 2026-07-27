@@ -14,3 +14,5 @@ rm -rf .jac
 CAREGRAPH_MOCK_LLM=1 jac run provenance.jac
 rm -rf .jac
 CAREGRAPH_MOCK_LLM=1 jac run integration.jac
+rm -rf .jac
+CAREGRAPH_MOCK_LLM=1 jac run regression.jac

@@ -154,7 +154,7 @@ that produced it — traceability is a property of the traversal, not an accurac
 ```bash
 ./scripts/run.sh          # one server on :8000 — walkers AND static frontend
 ./scripts/demo_reset.sh   # wipe .jac/, restart, reload the simulated corpus
-./scripts/run_tests.sh    # 3 Jac suites, 41 checks, keyless
+./scripts/run_tests.sh    # 4 Jac suites, 89 checks, keyless
 ```
 
 Then open <http://localhost:8000/static/home.html> (not `file://`).
