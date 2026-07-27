@@ -36,6 +36,13 @@ async function callWalker(name, body = {}) {
   const rep=(j.data&&j.data.reports)||j.reports; return rep?(rep[0]??j):j;
 }
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+function setPatient(name, days) {
+  if (!name) return;
+  document.getElementById('patientName').textContent =
+    '— ' + name + (days ? ' · day ' + days : '');
+  document.getElementById('askInput').placeholder =
+    'Ask about ' + name + '’s memory…';
+}
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function mdish(s) {
   return esc(s).split('\n').map(line => {
@@ -133,9 +140,9 @@ svg.call(d3.zoom().scaleExtent([0.25, 4]).on('zoom', e => zoomG.attr('transform'
 const pane = document.getElementById('graphPane');
 let W = pane.clientWidth || 800, H = pane.clientHeight || 600;
 const sim = d3.forceSimulation()
-  .force('charge', d3.forceManyBody().strength(-180))
-  .force('link', d3.forceLink().id(d => d.id).distance(70))
-  .force('collide', d3.forceCollide().radius(d => RADIUS(d) + 6))
+  .force('charge', d3.forceManyBody().strength(-260))
+  .force('link', d3.forceLink().id(d => d.id).distance(84))
+  .force('collide', d3.forceCollide().radius(d => RADIUS(d) + 9))
   .force('center', d3.forceCenter(W / 2, H / 2))
   .on('tick', () => {
     gLink.selectAll('line')
@@ -154,9 +161,14 @@ let latestSnapshot = null;
 let replaying = false, dragging = false;
 let tlDebounce = null;
 
+// Links are context, not content: warm-toned and faint (the design mock's
+// graph reads clean because edges nearly vanish). `mentioned` edges are the
+// hairball-makers — they drop to a whisper.
+const LINK_COLOR = '#d9cbb2';
 const linkBaseOpacity = d =>
+  d.type === 'mentioned' ? 0.07 :
   d.type === 'remembers' && d.confidence != null
-    ? Math.max(0.12, Math.min(0.9, +d.confidence)) : 0.35;
+    ? Math.max(0.10, Math.min(0.9, +d.confidence)) * 0.5 : 0.16;
 
 function drag() {
   return d3.drag()
@@ -181,7 +193,7 @@ function updateGraph(data) {
   gLink.selectAll('line')
     .data(links, d => (d.source.id ?? d.source) + '|' + (d.target.id ?? d.target) + '|' + d.type)
     .join('line')
-    .attr('stroke', '#b6bdc9').attr('stroke-width', 1)
+    .attr('stroke', LINK_COLOR).attr('stroke-width', 1)
     .attr('opacity', linkBaseOpacity);
 
   const nodeSel = gNode.selectAll('g.node').data(nodes, d => d.id)
@@ -223,7 +235,7 @@ function updateGraph(data) {
   }
 
   const p = nodes.find(n => n.type === 'Patient');
-  if (p) document.getElementById('patientName').textContent = '— ' + (p.label || p.name || '');
+  if (p) setPatient(p.label || p.name || '');
 }
 
 function flashNode(id) {
@@ -258,12 +270,12 @@ async function runReplay(path) {
     hit.attr('opacity', 1);
     const c = hit.select('circle');
     const r0 = RADIUS(hit.datum());
-    c.transition().duration(250).attr('r', r0 * 1.9).attr('stroke', '#1a2233').attr('stroke-width', 3);
+    c.transition().duration(250).attr('r', r0 * 1.9).attr('stroke', '#4a3f33').attr('stroke-width', 3);
     if (prev !== null) {
       linkSel.filter(d => {
         const s = d.source.id ?? d.source, t = d.target.id ?? d.target;
         return (s === prev && t === id) || (s === id && t === prev);
-      }).attr('opacity', 0.9).attr('stroke', '#37415a');
+      }).attr('opacity', 0.9).attr('stroke', '#a5732f');
     }
     prev = id;
     await sleep(400);
@@ -274,7 +286,7 @@ async function runReplay(path) {
   nodeSel.attr('opacity', NODE_OPACITY);
   nodeSel.select('circle').transition().duration(400)
     .attr('r', RADIUS).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
-  linkSel.attr('stroke', '#b6bdc9').attr('opacity', linkBaseOpacity);
+  linkSel.attr('stroke', LINK_COLOR).attr('opacity', linkBaseOpacity);
   replaying = false;
 }
 
@@ -330,11 +342,13 @@ async function loadAlerts() {
     const alerts = Array.isArray(r?.alerts) ? r.alerts : Array.isArray(r) ? r : [];
     if (!alerts.length) { box.innerHTML = '<span class="chip-none">No alerts — all steady.</span>'; return; }
     box.innerHTML = alerts.map(a => {
-      // Render backend-formatted detail verbatim; only strip the leading
-      // "kind:" prefix since the chip already shows the kind.
+      // The chip already shows the kind in bold — strip it from the detail,
+      // whether the backend sent the raw kind or the plain-English label.
       let rate = String(a.detail || '');
-      if (a.kind && rate.startsWith(a.kind + ':')) rate = rate.slice(a.kind.length + 1).trim();
       const kind = kindLabel(a.kind || 'alert');
+      if (a.kind && rate.startsWith(a.kind + ':')) rate = rate.slice(a.kind.length + 1).trim();
+      if (rate.startsWith(kind + ':')) rate = rate.slice(kind.length + 1).trim();
+      if (rate.startsWith(kind + ' —')) rate = rate.slice(kind.length + 2).trim();
       const verdict = a.verdict === 'confirmed'
         ? `<span class="vok">✓ verified · ${a.evidence?.length || 0} evidence</span>`
         : a.verdict ? `<span class="vplain">${esc(a.verdict)}</span>` : '';
@@ -473,7 +487,7 @@ function draftCardHTML() {
   const d = handoffDraft;
   if (!d || dismissed.has('draft:' + d.report_id)) return '';
   const n = d.items.length;
-  return `<div class="tcard" data-review="1" data-key="${esc('draft:' + d.report_id)}">
+  return `<div class="tcard draft" data-review="1" data-key="${esc('draft:' + d.report_id)}">
     <div class="thead"><span class="rtitle">Draft</span><span class="chip amber">needs review</span>
       <span class="spacer"></span><button class="xbtn" title="Hide card">&#10005;</button></div>
     <div class="tbody">${n} item${n === 1 ? '' : 's'} to check — tap to review &amp; confirm</div>
@@ -650,7 +664,8 @@ async function loadTimeline() {
     };
     const p = timelineData.patient;
     const pn = typeof p === 'string' ? p : (p && (p.name || p.label));
-    if (pn) document.getElementById('patientName').textContent = '— ' + pn;
+    const days = new Set(timelineData.entries.map(e => String(e.ts || '').slice(0, 10))).size;
+    if (pn) setPatient(pn, days);
     renderAll();
   } catch (e) { console.warn('timeline failed:', e.message); }
 }
@@ -714,7 +729,8 @@ COLS.forEach(col => {
   let saved = null;
   try { saved = localStorage.getItem('cg_collapse_' + col); } catch (e) {}
   // Doctor starts tucked away (as in the design mock) until opened once.
-  if (saved === '1' || (saved === null && col === 'doctor')) setCollapsed(col, true);
+  // Legacy builds stored '' instead of '0' — treat '' as "never touched".
+  if (saved === '1' || (!saved && col === 'doctor')) setCollapsed(col, true);
 });
 document.querySelectorAll('.collapse-btn').forEach(b =>
   b.addEventListener('click', e => { e.stopPropagation(); setCollapsed(b.dataset.col, true); }));

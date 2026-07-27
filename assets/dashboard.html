@@ -15,8 +15,16 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 15px; line-height: 1.5; color: #4a3f33;
-    background: linear-gradient(180deg, #f6f1e7 0%, #efe7d8 100%);
+    background: linear-gradient(180deg, #eee5d3 0%, #e6dac4 100%);
     display: flex; flex-direction: column;
+    padding: 14px; box-sizing: border-box;
+  }
+  /* the whole console sits on one rounded sheet, like the design mock */
+  #sheet {
+    flex: 1; min-height: 0; display: flex; flex-direction: column;
+    border-radius: 22px; overflow: hidden;
+    background: linear-gradient(180deg, #f9f4e9 0%, #f2eadb 100%);
+    box-shadow: 0 18px 60px rgba(110,80,40,.20);
   }
   h1, h2, h3 { color: #4a3f33; font-weight: 700; }
 
@@ -30,7 +38,7 @@
   .brand { font-size: 20px; font-weight: 700; color: #4a3f33; white-space: nowrap; }
   .brand .dot { color: #e8a13c; }
   #patientName { color: #8a7a66; font-weight: 500; white-space: nowrap; }
-  .askcol { flex: 1; min-width: 240px; max-width: 620px; margin: 0 auto; }
+  .askcol { flex: 1; min-width: 240px; max-width: 640px; margin: 0 auto; position: relative; }
   .askwrap { display: flex; gap: 8px; }
   .askwrap input {
     flex: 1; padding: 10px 14px; font-size: 15px; border: none;
@@ -38,6 +46,7 @@
   }
   .askwrap input::placeholder { color: #a3937d; }
   .askwrap input:focus { background: #fffdf7; box-shadow: 0 3px 14px rgba(120,90,50,.12); }
+  .askwrap button { border-radius: 999px; padding: 10px 22px; }
   button {
     padding: 10px 16px; font-size: 15px; font-weight: 700; border: none;
     border-radius: 12px; background: linear-gradient(180deg, #eda766 0%, #e08c3e 100%);
@@ -49,7 +58,12 @@
   button:disabled { background: #ddd0ba; box-shadow: none; filter: none; cursor: default; }
   button.ghost { background: #f1e9da; color: #6b5c48; box-shadow: none; }
   button.ghost:hover { background: #eadfc9; filter: none; }
-  .asksugg { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+  .asksugg {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+    z-index: 40; background: #fffdf7; border-radius: 14px; padding: 9px;
+    box-shadow: 0 12px 34px rgba(120,90,50,.18); gap: 6px; flex-wrap: wrap;
+  }
+  .askcol:focus-within .asksugg { display: flex; }
   .asksugg .sg {
     background: #f1e9da; color: #6b5c48; font-size: 12px; font-weight: 600;
     padding: 4px 12px; min-height: 0; border-radius: 999px; box-shadow: none;
@@ -212,6 +226,8 @@
     padding: 9px 11px; margin-top: 8px; font-size: 13px; max-height: 180px; overflow-y: auto;
   }
   .muted { color: #a3937d; font-size: 13px; }
+  .tcard.draft { background: #fbeadf; }
+  .tcard.draft:hover { box-shadow: 0 6px 24px rgba(190,110,60,.20); }
   .ok { color: #6f9e5f; font-weight: 700; }
   .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
   .tag {
@@ -282,6 +298,7 @@
 </style>
 </head>
 <body>
+<div id="sheet">
 
 <header>
   <span class="brand">Memory <span class="dot">Book</span></span>
@@ -409,6 +426,8 @@
 </div>
 
 <footer>Demo data — simulated. No audio is stored — only text. · Jac walkers on duty: Ingest · Recall · Drift · Critique · Handoff — the graph is the database.<span id="diagLine"></span></footer>
+</div>
+</div>
 
 <script src="dashboard.js"></script>
 </body>
