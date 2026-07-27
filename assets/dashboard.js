@@ -182,8 +182,8 @@ const nodeOf = x => (x && typeof x === 'object') ? x : nodesById.get(x);
 const isMajorNode = n => !!n && n.type !== 'Entry' && n.type !== 'Report' && isLoud(n);
 const linkTier = d =>
   (isMajorNode(nodeOf(d.source)) ? 1 : 0) + (isMajorNode(nodeOf(d.target)) ? 1 : 0);
-const TIER_OPACITY = [0.10, 0.26, 0.72];
-const TIER_WIDTH = [0.8, 1, 1.6];
+const TIER_OPACITY = [0.04, 0.18, 0.78];
+const TIER_WIDTH = [0.6, 1, 1.7];
 const linkBaseOpacity = d => TIER_OPACITY[linkTier(d)];
 
 function drag() {
