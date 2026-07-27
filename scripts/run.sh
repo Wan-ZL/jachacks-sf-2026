@@ -2,7 +2,7 @@
 # CareGraph — single-server run: Jac backend + static frontend, one port.
 #   ./scripts/run.sh        start server on :8000 (walkers + assets/)
 #   ./scripts/run.sh stop   stop it
-# URLs: http://localhost:8000/static/dashboard.html | /patient.html | /doctor.html
+# URLs: http://localhost:8000/static/dashboard.html | /patient.html
 # Phone demo needs HTTPS (Web Speech secure context): use the jachammer sandbox
 # deploy URL, or `cloudflared tunnel --url http://localhost:8000`
 # (brew install cloudflared). On this laptop, localhost is already secure.
@@ -30,5 +30,4 @@ echo $! > "$PIDF"
 echo "server starting (log: /tmp/caregraph-server.log)"
 echo "  dashboard: http://localhost:8000/static/dashboard.html"
 echo "  patient:   http://localhost:8000/static/patient.html"
-echo "  doctor:    http://localhost:8000/static/doctor.html"
 command -v cloudflared >/dev/null || echo "hint: brew install cloudflared for the phone HTTPS tunnel"

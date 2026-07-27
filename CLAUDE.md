@@ -44,7 +44,7 @@ over memory or general docs; only its patterns are confirmed to run on this mach
 - **Walker `trace`/`path` node-id lists power the dashboard's spotlight replay** — snapshot and
   walkers must emit the same native node ids or the demo's key visual breaks.
 - Three frontends, one backend: `dashboard.html` (caregiver console), `patient.html` (wearable,
-  long-press + Web Speech, batches every 10s), `doctor.html` (read-only clinical report).
+  long-press + Web Speech, batches every 10s), doctor reports as cards in the console Doctor column.
 
 ## Hard constraints (hackathon + owner)
 

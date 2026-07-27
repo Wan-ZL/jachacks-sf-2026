@@ -26,7 +26,7 @@ doctor.
 - **L2 — Caregiver console** (`assets/dashboard.html`): memories grow into a living graph of
   people, facts and events. Named walkers patrol it — detect decline signals, raise alerts,
   auto-write the daily report, draft the shift handoff. The caregiver only reviews and confirms.
-- **L3 — Doctor report** (`assets/doctor.html`): one click before an appointment produces a
+- **L3 — Doctor report** (Doctor column in the console): one click before an appointment produces a
   clinical timeline — signal trends by day, memory-confidence decay, key events.
 
 Every node carries its provenance (`L1_wearable` = 0.7 confidence, `L2_caregiver` = 0.9), so

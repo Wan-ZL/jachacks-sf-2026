@@ -25,7 +25,7 @@ reports → humans only confirm. Three layers: L1 patient wearable / L2 caregive
 assets/             # static frontend, served BY THE SAME jac server (single origin, no CORS)
   dashboard.html    # caregiver console: D3 graph + spotlight replay + trends + alerts + handoff review
   patient.html      # wearable page: long-press record, Web Speech API, batch POST
-  doctor.html       # doctor report: print-friendly read-only
+  (doctor reports: cards in the console Doctor column — modal + print)
   app.css           # shared minimal styles
   vendor/d3.v7.min.js
 scripts/
@@ -103,7 +103,7 @@ implements via direct `anthropic` python package call with JSON schema prompt �
   (idle gray / recording soft green + pulsing). webkitSpeechRecognition, continuous, interim off,
   lang from ?lang= (default en-US). Buffer finals; every 10s (const BATCH_MS) or on stop → POST
   ingest_batch{source:"L1_wearable"}. Show last transcript line faintly (patient dignity: readable, calm).
-- doctor.html: fetch doctor_report → render sections + a simple inline SVG line/bar for weekly counts. Print CSS.
+- Doctor column (dashboard): doctor_report → stacked cards → modal with day table + print (#printArea).
 
 ## Seed data (seed_data.json)
 7 days, ~20 entries, mixed source L1/L2, pre-extracted (each entry ships its persons/facts/events/signals
@@ -120,4 +120,4 @@ one positive_recall (recognized old song). Include warm details (garden, jazz, T
 ## Demo path (sacred — bugs here outrank everything)
 patient.html long-press → say "Emma is coming on Sunday" → dashboard graph grows Emma+Event within 15s
 → ask "Does she remember Emma is visiting?" → spotlight replay → answer with evidence
-→ alerts card shows repeat_question 3→11 → handoff draft → confirm 2 items → doctor.html trend page.
+→ alerts card shows repeat_question 3→11 → handoff draft → confirm 2 items → doctor report card → print.
