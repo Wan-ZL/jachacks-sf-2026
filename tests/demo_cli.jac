@@ -1,4 +1,4 @@
-# CareGraph terminal demo — the full product story without a browser.
+# Memory Book terminal demo — the full product story without a browser.
 # For judges and reviewers: scripts/demo_cli.sh runs this in an isolated temp
 # dir (keyless by default via the deterministic byLLM fallback; export
 # ANTHROPIC_API_KEY and unset CAREGRAPH_MOCK_LLM for live LLM phrasing).
@@ -13,7 +13,7 @@ def banner(title: str) {
 }
 
 with entry {
-    banner("CareGraph — ambient memory graph for Alzheimer's care");
+    banner("Memory Book — ambient memory graph for Alzheimer's care");
     print("Margaret, 78. Her granddaughter Emma visits Sunday.");
     print("A worn phone listens; walkers turn talk into a memory graph.");
 

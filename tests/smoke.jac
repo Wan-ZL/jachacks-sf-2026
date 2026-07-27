@@ -1,4 +1,4 @@
-# CareGraph smoke suite — exercises every walker end-to-end on the embedded
+# Memory Book smoke suite — exercises every walker end-to-end on the embedded
 # demo corpus, keyless (CAREGRAPH_MOCK_LLM=1). Run via scripts/run_tests.sh,
 # which copies the project into a temp dir so the demo graph state is untouched.
 

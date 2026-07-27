@@ -1,4 +1,4 @@
-# CareGraph backend entry - ALL walkers live in this served module.
+# Memory Book backend entry - ALL walkers live in this served module.
 # (Walkers pulled in via `include` lose their :pub access tag under `jac start`
 #  and return 401 - verified empirically; type/def includes are unaffected.)
 # Serve from repo root: jac start main.jac --no_client -p 8000 (static frontend in assets/)
@@ -441,7 +441,7 @@ walker:pub seed_load {
 }
 
 # ============ report / analysis walkers ============
-# CareGraph report/analysis walkers: drift_scan, daily_report, handoff_draft,
+# Memory Book report/analysis walkers: drift_scan, daily_report, handoff_draft,
 # handoff_confirm, doctor_report. Shapes per CONTRACT.md.
 # "now" is always the newest ts in the graph (corpus time), never the wall clock,
 # so the 7-day simulated seed behaves the same on any demo day.
@@ -802,6 +802,6 @@ walker:pub diag {
 cl {
     def:pub app() -> JsxElement {
         window.location.replace("/static/home.html");
-        return <div style={{"fontFamily": "sans-serif", "padding": "2rem", "color": "#555"}}>Loading CareGraph…</div>;
+        return <div style={{"fontFamily": "sans-serif", "padding": "2rem", "color": "#555"}}>Loading Memory Book…</div>;
     }
 }

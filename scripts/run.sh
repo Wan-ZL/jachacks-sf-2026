@@ -1,5 +1,5 @@
 #!/bin/bash
-# CareGraph — single-server run: Jac backend + static frontend, one port.
+# Memory Book — single-server run: Jac backend + static frontend, one port.
 #   ./scripts/run.sh        start server on :8000 (walkers + assets/)
 #   ./scripts/run.sh stop   stop it
 # URLs: http://localhost:8000/static/dashboard.html | /patient.html

@@ -1,4 +1,4 @@
-# CareGraph graph schema — node/edge types exactly per CONTRACT.md.
+# Memory Book graph schema — node/edge types exactly per CONTRACT.md.
 
 node Patient {
     has name: str;

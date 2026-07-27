@@ -1,5 +1,24 @@
 # Decision log — Memory Book (né CareGraph) @ JacHacks SF 2026
 
+## 2026-07-26 ~17:40 — Reviewer round 4: PR #2 merged with corrections; ratio already fixed
+
+- **PR #2 (README as submission source) MERGED** — excellent structure, kept
+  wholesale. Post-merge corrections for facts that went stale between branch
+  point and merge: 13→**14 walkers** (`diag` ops probe added in 9d4f90c),
+  L3 references to deleted `assets/doctor.html` → Doctor-column model, every
+  main.jac line ref +1 (import socket shifted the file), `seed_corpus.py` →
+  `seed_corpus.jac`, and "4 suites / 47 assertions" → **3 suites / 41 checks**
+  (47 was a grep count that includes the `def check(` definitions; 41 is the
+  runtime PASS output — count claims must come from execution, not grep).
+- **Jac ratio point is already resolved**: 32.75% was pre-9d4f90c. Corpus now
+  lives in `seed_corpus.jac` (+12.3K Jac, −12.5K Py), dead doctor.html deleted,
+  dashboard JS split to its own file. Local linguist-style math: **Jac 43.5%,
+  top language**. No cuts needed; nothing vendored-away or hidden.
+- **Banner fix shipped**: `tests/demo_cli.jac` + every code-file header now say
+  Memory Book; `cl app()` loading text too. `CAREGRAPH_MOCK_LLM` env var and
+  `cg_*` localStorage keys deliberately keep their names (renaming breaks
+  scripts/state for zero audience value).
+
 ## 2026-07-26 ~16:55 — PR #1 palette adopted by hand; console matched to design mock
 
 - **PR #1 (Carol929) applied manually onto main** (`f3a97e2`): branch was based on

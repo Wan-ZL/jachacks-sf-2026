@@ -1,5 +1,5 @@
 #!/bin/bash
-# Terminal demo of the full CareGraph story (no browser, keyless by default).
+# Terminal demo of the full Memory Book story (no browser, keyless by default).
 set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP=$(mktemp -d)

@@ -1,4 +1,4 @@
-# CareGraph byLLM layer — typed extraction + phrasing + report drafting.
+# Memory Book byLLM layer — typed extraction + phrasing + report drafting.
 # Safety fuse: set env CAREGRAPH_MOCK_LLM=1 to run all three functions with
 # deterministic plain-Jac logic (zero API calls). Public wrappers extract /
 # phrase_answer / draft_report dispatch on that env var; the by-llm versions
