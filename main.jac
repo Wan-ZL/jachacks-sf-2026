@@ -790,7 +790,11 @@ walker:pub diag {
         }
         report {"pod": f"{socket.gethostname()}:{os.getpid()}",
                 "patient": pname, "entries": n_entries, "reports": n_reports,
-                "latest_entry_ts": latest_ts, "latest_entry_source": latest_src};
+                "latest_entry_ts": latest_ts, "latest_entry_source": latest_src,
+                "llm": {"key_present": bool(os.environ.get("ANTHROPIC_API_KEY")),
+                        "mock_fuse": os.environ.get("CAREGRAPH_MOCK_LLM", "") == "1",
+                        "model": os.environ.get("CAREGRAPH_MODEL", "claude-sonnet-4-6"),
+                        "last_error": LLM_ERRORS[-1] if LLM_ERRORS else ""}};
     }
 }
 

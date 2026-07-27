@@ -108,14 +108,26 @@ def _heuristic_extract(batch_text: str) -> ExtractResult {
     return ExtractResult(persons=persons, facts=[], events=[], signals=signals);
 }
 
+# Black box: every silent LLM fallback records WHY, and `diag` reports it —
+# "fast template output" stops being a mystery on the hosted deploy.
+glob LLM_ERRORS: list = [];
+
+def _note_llm_error(e: any) {
+    LLM_ERRORS.append(str(e)[:220]);
+    if len(LLM_ERRORS) > 5 {
+        LLM_ERRORS.pop(0);
+    }
+}
+
 def extract(batch_text: str, today: str) -> ExtractResult {
     if _mock_on() {
         return _heuristic_extract(batch_text);
     }
     try {
         return _llm_extract(batch_text, today);
-    } except Exception {
+    } except Exception as e {
         # live LLM unavailable (no key / outage) — demo must not 500
+        _note_llm_error(e);
         return _heuristic_extract(batch_text);
     }
 }
@@ -129,7 +141,8 @@ def phrase_answer(question: str, facts: list[str]) -> str {
     }
     try {
         return _llm_phrase_answer(question, facts);
-    } except Exception {
+    } except Exception as e {
+        _note_llm_error(e);
         return "Here is what I know: " + "; ".join(facts) + ".";
     }
 }
@@ -144,7 +157,8 @@ def draft_report(kind: str, items: list[str]) -> str {
     }
     try {
         return _llm_draft_report(kind, items);
-    } except Exception {
+    } except Exception as e {
+        _note_llm_error(e);
         lines = [f"{kind} report — {len(items)} items."];
         for it in items[:10] {
             lines.append(f"- {it}");
