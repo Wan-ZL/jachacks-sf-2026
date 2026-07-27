@@ -72,7 +72,7 @@ with entry {
     kinds = [x["kind"] for x in d["alerts"]];
     check("drift flags repeat_question", "repeat_question" in kinds);
     rq = [x for x in d["alerts"] if x["kind"] == "repeat_question"][0];
-    check("drift detail speaks in rates", "/day" in rq["detail"]);
+    check("drift detail speaks plain rates", "a day" in rq["detail"]);
     check("flat control (social_moment) never alerts", "social_moment" not in kinds);
 
     # ---- critique: adversarial verification with graph evidence

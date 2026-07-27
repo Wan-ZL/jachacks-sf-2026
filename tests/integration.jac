@@ -68,7 +68,7 @@ with entry {
     icheck("spike raises repeat_question alert", "repeat_question" in kinds);
     rq = [x for x in d["alerts"] if x["kind"] == "repeat_question"][0];
     icheck("alert severity is high", rq["severity"] == "high");
-    icheck("alert speaks in rates", "/day" in rq["detail"]);
+    icheck("alert speaks plain rates", "a day" in rq["detail"]);
     icheck("disorientation reported as new this week",
            "disorientation" in kinds
            and "new this week" in [x for x in d["alerts"] if x["kind"] == "disorientation"][0]["detail"]);

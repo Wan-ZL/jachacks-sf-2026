@@ -38,7 +38,7 @@ Three ends, one graph, escalating data tiers:
   every surviving alert carries its own proof; **HandoffWalker** drafts the shift
   report and the caregiver only reviews and confirms. A flat control signal
   (social_moment) stays quiet — she isn't "just chattier this week."
-- **L3 — Doctor reports** (Doctor column in the console): one click before an
+- **Doctor reports** (the fourth column in the console): one click before an
   appointment produces a clinical timeline card — per-day signal trends,
   memory-confidence decay, key events. Opens full-screen; printable from there.
 
@@ -51,16 +51,16 @@ accuracy score we tuned.
 
 ## How we built it — where Jac runs (rubric: walkers, graph traversal, byLLM, agentic flows)
 
-Everything that thinks is Jac -- the graph schema, all 13 walkers, and every line of decline logic live in the root `*.jac` files. No ORM, no database code, no API routing layer, no server framework:
+Everything that thinks is Jac -- the graph schema, all 14 walkers, and every line of decline logic live in the root `*.jac` files. No ORM, no database code, no API routing layer, no server framework:
 
 - **Object-spatial core**: the patient's world IS the graph — `Patient`, `Person`,
   `Fact`, `Event`, `Entry`, `Signal`, `Report` nodes; typed `remembers` edges carry
   confidence + provenance (L1 wearable 0.7 / L2 human 0.9) that **decays 0.05/day**
   unless re-mentioned.
-- **13 walkers as the agent team** (`main.jac`): init_patient, ingest_batch, ask,
+- **14 walkers as the agent team** (`main.jac`): init_patient, ingest_batch, ask,
   graph_snapshot, search_entries, timeline, seed_load, drift_scan,
   **critique_alerts** (the devil's-advocate pass), daily_report,
-  handoff_draft/confirm, doctor_report. Walkers ARE our REST API
+  handoff_draft/confirm, doctor_report, diag. Walkers ARE our REST API
   (`walker:pub` → POST /walker/<name>) — we wrote zero routing code.
 - **byLLM at the boundary only** (`llm.jac`): typed `by llm()` functions —
   `extract(batch) -> ExtractResult` with sem-constrained signal kinds,
@@ -78,7 +78,8 @@ Everything that thinks is Jac -- the graph schema, all 13 walkers, and every lin
   found the `/static/` gateway path that works on both, plus a monkey-patch for the
   older server's unimplemented `send_static_file`.
 - Deploy packaging drops loose data files — the demo corpus is now compiled into
-  code (`seed_corpus.py`).
+  a Jac module (`seed_corpus.jac`) -- a module always ships, and the corpus is part
+of the graph program anyway.
 - Chrome's SpeechRecognition self-stops on silence — auto-restart loop in the
   wearable page.
 
@@ -112,7 +113,7 @@ diagnosis.
    spotlight traversal + evidence → Alerts strip: 3.2× repeat-question, ✓
    CritiqueWalker verified · social control flat → Draft handoff → review & confirm in the overlay
    → doctor report card → print.
-3. (60s) WHERE JAC RUNS: open main.jac on screen — 13 walkers, typed edges with
+3. (60s) WHERE JAC RUNS: open main.jac on screen — 14 walkers, typed edges with
    decaying confidence; point at the footer walker roster and the ✓ CritiqueWalker
    badge; "the graph is the database — no ORM, no SQL, walkers are the API."
 4. (30s) Numbers + close: repeat questions 3.0/day baseline -> 9.5/day now (3.2x,

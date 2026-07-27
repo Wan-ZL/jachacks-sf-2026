@@ -29,19 +29,17 @@ to a doctor.
 
 ## What it does
 
-Three ends, one graph, escalating tiers of data quality.
+Two ends, one graph, escalating tiers of data quality.
 
-- **L1 — Patient companion** (`assets/patient.html`): an old phone on a lanyard. One button:
-  long-press to start, long-press to stop — the patient always holds the off switch. The
-  browser's speech engine transcribes and the text batches into the graph every few seconds.
-  **The system never records or stores audio; only the recognized text is kept.**
-- **L2 — Caregiver console** (`assets/dashboard.html`): people, facts and events grow into a
-  living graph. Named walkers patrol it — detect decline signals, raise alerts, auto-write the
-  daily log, draft the shift handoff. The caregiver reviews and confirms; they never write the
-  log themselves.
-- **L3 — Doctor report** (`assets/doctor.html`): one click before an appointment produces a
-  clinical timeline — signal trends by day, memory-confidence decay, key events, each traceable
-  to the entry that produced it.
+- **The companion** (`assets/patient.html`) — an old phone on a lanyard. One button: long-press
+  to start, long-press to stop; the patient always holds the off switch. The browser's speech
+  engine transcribes and the text batches into the graph every few seconds. **The system never
+  records or stores audio; only the recognized text is kept.**
+- **The caregiver console** (`assets/dashboard.html`) — people, facts and events grow into a
+  living graph, and four columns escalate the same data from raw to clinical:
+  **What was heard** (raw entries) → **Daily notes** (auto-written) → **Handoff** (AI drafts, the
+  caregiver confirms) → **Doctor** (a printable clinical timeline). Ask the graph anything and
+  `RecallWalker` walks it, lighting the path it took.
 
 Every node carries its provenance — `L1_wearable` contributes 0.7 confidence, `L2_caregiver` 0.9
 — so data quality is part of the graph model rather than a disclaimer.
@@ -55,51 +53,53 @@ slipping and have no way to check.
 
 ## Where Jac runs — point at it, don't take our word for it
 
-**Everything that thinks is Jac.** The graph schema, all thirteen walkers, and every line of
-decline logic live in the root `*.jac` files. The frontend is dependency-free vanilla JS whose
-only job is to render what walkers return. This repo contains **no ORM, no database code, no API
-routing layer and no server framework** — Jac provides all four. That is not a stylistic choice;
-it is why two people shipped three surfaces in one day.
+**Everything that thinks is Jac.** The graph schema, all fourteen walkers, every line of decline
+logic, and even the demo corpus live in the root `*.jac` files. The frontend is dependency-free
+vanilla JS whose only job is to render what walkers return. This repo contains **no ORM, no
+database code, no API routing layer and no server framework** — Jac provides all four. That is
+not a stylistic choice; it is why two people shipped this in one day.
 
 | Jac capability | How Memory Book depends on it | Code |
 |---|---|---|
-| Typed node/edge graph | The memory graph **is** the domain model: 7 node types, 5 edge types | [`schema.jac:3-52`](schema.jac) |
-| Named walkers as agents | **13 walkers**, each with one job (list below) | [`main.jac`](main.jac) |
-| Graph traversal + type filters | `[here ->:remembers:->[?:Person]]` — recall is a walk, not a vector search | [`main.jac:276`](main.jac#L276) |
-| Edge objects carry state | `[edge patient ->:remembers:-> target]` reads and writes per-memory confidence | [`main.jac:106`](main.jac#L106) |
-| `visit … else` get-or-create | Every walker bootstraps the patient only when absent | [`main.jac:321`](main.jac#L321) |
-| `with Root exit` | `ask` accumulates hits during the walk and reports **once** at the end | [`main.jac:254`](main.jac#L254) |
+| Typed node/edge graph | The memory graph **is** the domain model: 7 node types, 5 edge types | [`schema.jac`](schema.jac) |
+| Named walkers as agents | **14 walkers**, each with one job (list below) | [`main.jac`](main.jac) |
+| Graph traversal + type filters | `[here ->:remembers:->[?:Person]]` — recall is a walk, not a vector search | [`main.jac:277`](main.jac#L277) |
+| Edge objects carry state | `[edge patient ->:remembers:-> target]` reads and writes per-memory confidence | [`main.jac:107`](main.jac#L107) |
+| `visit … else` get-or-create | Every walker bootstraps the patient only when absent | [`main.jac:322`](main.jac#L322) |
+| `with Root exit` | `ask` accumulates hits during the walk and reports **once** at the end | [`main.jac:255`](main.jac#L255) |
 | **Language-level persistence** | The graph survives process restarts with **zero lines of database code** — no schema, no migrations, no ORM | (everywhere) |
-| **`walker:pub` → auto REST** | All 13 endpoints exist because the walkers are public. **We wrote no routing code.** | [`main.jac:171`](main.jac#L171) onward |
+| **`walker:pub` → auto REST** | All 14 endpoints exist because the walkers are public. **We wrote no routing code.** | [`main.jac:172`](main.jac#L172) onward |
 | byLLM typed returns | `-> ExtractResult by llm()` — the return type *is* the output schema | [`llm.jac:55`](llm.jac#L55) |
 | `sem` prompt wiring | Field-level prompt semantics keep extraction typed and honest | [`llm.jac:18`](llm.jac#L18) |
+| Jac as the data module | Deploy packaging drops loose data files, so the demo corpus **is a Jac module** | [`seed_corpus.jac`](seed_corpus.jac) |
 
-### The 13 walkers
+### The 14 walkers
 
 The UI labels walkers by role (`RecallWalker`, `DriftWalker`, `CritiqueWalker`); the identifiers
 below are what you `grep` for in `main.jac` and what the REST routes are named.
 
 | Walker | Shown in UI as | Job | Line |
 |---|---|---|---|
-| `init_patient` | — | Create or find the patient root | [171](main.jac#L171) |
-| `ingest_batch` | IngestWalker | Transcript batch → typed LLM extraction → merge into the graph, returning the visit trace | [186](main.jac#L186) |
-| `ask` | RecallWalker | **Deterministic** keyword walk over the memory graph; returns the answer *plus its graph path and the source entries that justify it* | [207](main.jac#L207) |
-| `graph_snapshot` | — | Nodes and links for the D3 view — the same native ids the walkers emit, so spotlight replay lines up | [264](main.jac#L264) |
-| `search_entries` | — | Free-text search across raw entries | [316](main.jac#L316) |
-| `timeline` | — | Chronological entry + report feed | [341](main.jac#L341) |
-| `seed_load` | — | Wipe and load the simulated corpus | [378](main.jac#L378) |
-| `drift_scan` | DriftWalker | Decline detection: recent-window vs baseline-window comparison, plus confidence decay on links that were not refreshed | [532](main.jac#L532) |
-| **`critique_alerts`** | **CritiqueWalker** | **Adversarial second pass** — an alert keeps its severity only if its signals span ≥2 distinct days **and** ≥2 distinct evidence entries; a spike packed into one afternoon is downgraded, with the graph evidence attached | [553](main.jac#L553) |
-| `daily_report` | — | Auto-written, auto-filed | [598](main.jac#L598) |
-| `handoff_draft` | HandoffWalker | Everything since the last confirmed handoff, drafted | [628](main.jac#L628) |
-| `handoff_confirm` | — | The one human step in the whole loop: the caregiver approves | [678](main.jac#L678) |
-| `doctor_report` | — | Clinical timeline + per-day trend buckets | [703](main.jac#L703) |
+| `init_patient` | — | Create or find the patient root | [172](main.jac#L172) |
+| `ingest_batch` | IngestWalker | Transcript batch → typed LLM extraction → merge into the graph, returning the visit trace | [187](main.jac#L187) |
+| `ask` | RecallWalker | **Deterministic** keyword walk over the memory graph; returns the answer *plus its graph path and the source entries that justify it* | [208](main.jac#L208) |
+| `graph_snapshot` | — | Nodes and links for the D3 view — the same native ids the walkers emit, so spotlight replay lines up | [265](main.jac#L265) |
+| `search_entries` | — | Free-text search across raw entries | [317](main.jac#L317) |
+| `timeline` | — | Chronological entry + report feed | [342](main.jac#L342) |
+| `seed_load` | — | Wipe and load the simulated corpus | [379](main.jac#L379) |
+| `drift_scan` | DriftWalker | Decline detection: recent-window vs baseline-window comparison, plus confidence decay on links that were not refreshed | [533](main.jac#L533) |
+| **`critique_alerts`** | **CritiqueWalker** | **Adversarial second pass** — an alert keeps its severity only if its signals span ≥2 distinct days **and** ≥2 distinct evidence entries; a spike packed into one afternoon is downgraded, with the graph evidence attached | [554](main.jac#L554) |
+| `daily_report` | — | Auto-written, auto-filed | [599](main.jac#L599) |
+| `handoff_draft` | HandoffWalker | Everything since the last confirmed handoff, drafted | [629](main.jac#L629) |
+| `handoff_confirm` | — | The one human step in the whole loop: the caregiver approves | [679](main.jac#L679) |
+| `doctor_report` | — | Clinical timeline + per-day trend buckets | [704](main.jac#L704) |
+| `diag` | — | Pod identity and entry counts, so both ends can prove they are talking to the same graph | [769](main.jac#L769) |
 
 ### Four things Jac gave us that we would otherwise have had to build
 
 1. **Persistence is the language.** Kill the server, restart it, the memory is still there. No
    schema, no migrations, no ORM, no database file we manage.
-2. **`walker:pub` is the API.** Thirteen REST endpoints exist because the walkers are public.
+2. **`walker:pub` is the API.** Fourteen REST endpoints exist because the walkers are public.
    No routing, no controllers, no serializers.
 3. **Traversal is the query language.** `[here ->:remembers:->[?:Person]]`. Recall is a walk over
    typed edges — which is exactly why every answer can cite its path.
@@ -110,7 +110,7 @@ below are what you `grep` for in `main.jac` and what the REST routes are named.
 
 Decline detection is arithmetic on the graph — count signals in the recent window, compare
 against the baseline window, decay confidence on links that were not refreshed
-([`main.jac:453-530`](main.jac#L453)). Deterministic, reproducible, and able to name the exact
+([`main.jac:454`](main.jac#L454)). Deterministic, reproducible, and able to name the exact
 signals and entries behind every alert.
 
 byLLM is used at exactly two boundaries: **text in** (transcript → typed `ExtractResult`) and
@@ -126,7 +126,7 @@ that produced it.
 
 ## What the demo shows
 
-Simulated 7-day corpus, 22 entries across both sources (`seed_data.json`):
+A simulated 7-day corpus, 22 entries across both sources ([`seed_corpus.jac`](seed_corpus.jac)):
 
 | | Baseline (prior 5 days) | Recent (last 2 days) |
 |---|---|---|
@@ -175,11 +175,12 @@ Then open <http://localhost:8000/static/home.html> (not `file://`).
 - **The hosted runtime and local jaclang disagree about byLLM packaging** — the hosted runtime
   bundles byLLM inside jaclang core and cannot parse the legacy pip package. Model loading is now
   runtime-adaptive (`llm_backend.py`).
+- **Deploy packaging drops loose data files.** Our seed corpus kept vanishing in the sandbox, so
+  we moved it into a Jac module (`seed_corpus.jac`) — a module always ships, and the corpus is
+  part of the graph program anyway.
 - **Static file serving differs across runtimes.** We read the runtime source, found the
   `/static/` gateway path that works on both, and monkey-patched the older server's
   unimplemented `send_static_file` (`static_patch.py`).
-- **Deploy packaging drops loose data files** — the demo corpus is now compiled into code
-  (`seed_corpus.py`).
 - **Chrome's SpeechRecognition self-stops on silence** — the companion page runs an auto-restart
   loop, and it requires a secure context, which nearly cost us the live demo.
 - **Our first alert wording compared raw counts across unequal windows** ("19 in the last 2 days
@@ -196,8 +197,8 @@ you can argue with is worth more than an alert that is merely confident.**
 **A flat control in our own data.** It would have been easier to make every signal climb. Holding
 one flat is what lets us say the finding is specific rather than "she talked more this week."
 
-**No database, no backend framework, no build step.** Thirteen REST endpoints, a persistent
-graph, three working surfaces, and a 47-assertion test suite — in one day, by two people.
+**No database, no backend framework, no build step.** Fourteen REST endpoints, a persistent
+graph, two working surfaces, and a 47-assertion Jac test suite — in one day, by two people.
 
 ## What we learned
 
@@ -214,7 +215,7 @@ judge, the feature got less explainable and no more accurate.
 ## What's next
 
 On-device transcription (whisper.cpp) so recognition never leaves the phone; guardian-managed
-consent profiles; longitudinal per-person baselines; clinician input as a fourth data tier.
+consent profiles; longitudinal per-person baselines; clinician input as a further data tier.
 
 ---
 
@@ -237,10 +238,12 @@ entry.
 
 ## Stack
 
-Jac (graph, walkers, REST) · byLLM (typed extraction and phrasing) · vanilla JS + D3 force graph
-with spotlight traversal replay · Web Speech API (browser transcription; no audio stored).
+Jac (graph, walkers, REST, demo corpus) · byLLM (typed extraction and phrasing) · vanilla JS +
+D3 force graph with spotlight traversal replay · Web Speech API (browser transcription; no audio
+stored).
 
 Build contract: [`CONTRACT.md`](CONTRACT.md) · Decision log: [`docs/DECISIONS.md`](docs/DECISIONS.md) ·
+Devpost copy: [`docs/DEVPOST.md`](docs/DEVPOST.md) ·
 Verified Jac/byLLM findings from today: [`docs/recon/`](docs/recon/)
 
 ---

@@ -4,7 +4,7 @@
 # Serve from repo root: jac start main.jac --no_client -p 8000 (static frontend in assets/)
 
 import static_patch;  # fills jaclang 0.16.7 send_static_file gap (see file header)
-import seed_corpus;  # demo corpus compiled into code — deploy packaging drops loose data files
+import seed_corpus;  # demo corpus lives in Jac — deploy packaging drops loose data files
 
 include schema;
 include llm;
@@ -16,6 +16,7 @@ include llm;
 import re;
 import os;
 import json;
+import socket;
 import from datetime { datetime, timedelta }
 
 glob STOPWORDS: list[str] = [
@@ -757,6 +758,39 @@ walker:pub doctor_report {
 
         content = draft_report("doctor", items) if items else "No clinical observations recorded yet.";
         report {"content": content, "weekly": weekly, "generated": datetime.now().isoformat()};
+    }
+}
+
+
+# Diagnostic probe. Phone-vs-laptop sync debugging on the hosted sandbox:
+# both pages show its output in their footer. If two devices report different
+# `pod` values (or different entry counts for the same user), the platform is
+# splitting storage across replicas — a deploy topology problem, not a bug here.
+walker:pub diag {
+    has reports: list[dict] = [];
+
+    can inspect with Root entry {
+        pname = "";
+        n_entries = 0;
+        n_reports = 0;
+        latest_ts = "";
+        latest_src = "";
+        for p in [-->[?:Patient]] {
+            pname = p.name;
+            for e in [p ->:has_entry:->[?:Entry]] {
+                n_entries += 1;
+                if e.ts > latest_ts {
+                    latest_ts = e.ts;
+                    latest_src = e.source;
+                }
+            }
+            for r in [p ->:has_report:->[?:Report]] {
+                n_reports += 1;
+            }
+        }
+        report {"pod": f"{socket.gethostname()}:{os.getpid()}",
+                "patient": pname, "entries": n_entries, "reports": n_reports,
+                "latest_entry_ts": latest_ts, "latest_entry_source": latest_src};
     }
 }
 

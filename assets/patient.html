@@ -100,7 +100,7 @@
 </div>
 
 <div id="lastline"></div>
-<footer>Demo data — simulated. No audio is stored — only text. · Jac walkers on duty: Ingest · Recall · Drift · Critique · Handoff — the graph is the database.</footer>
+<footer>Demo data — simulated. No audio is stored — only text. · Jac walkers on duty: Ingest · Recall · Drift · Critique · Handoff — the graph is the database.<span id="diagLine"></span></footer>
 
 <script>
 const API = new URLSearchParams(location.search).get('api') || ((location.protocol.startsWith('http') && location.port !== '8080') ? location.origin : null) || localStorage.getItem('api') || 'http://localhost:8000';
@@ -314,6 +314,20 @@ function longPressify(el, action) {
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, cancel));
 }
 longPressify(document.getElementById('home'), () => { location.href = 'home.html'; });
+
+/* diag probe: shows which server replica this phone talks to + its entry
+   count — compare with the laptop footer to spot split storage. */
+async function pollDiag() {
+  try {
+    const d = await callWalker('diag');
+    document.getElementById('diagLine').textContent =
+      ' \u00b7 ' + (d.entries ?? '?') + ' moments @ ' + (d.pod || '?');
+  } catch (e) {
+    document.getElementById('diagLine').textContent = ' \u00b7 probe unreachable';
+  }
+}
+pollDiag();
+setInterval(pollDiag, 15000);
 </script>
 </body>
 </html>
