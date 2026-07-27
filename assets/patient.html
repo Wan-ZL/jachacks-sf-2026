@@ -86,7 +86,7 @@
 </head>
 <body>
 
-<a id="home" href="home.html" title="Hold to go home">‹ Memory Book</a>
+<a id="home" href="/static/home.html" title="Hold to go home">‹ Memory Book</a>
 
 <div id="toast">✓ remembered</div>
 
@@ -313,7 +313,7 @@ function longPressify(el, action) {
   });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, cancel));
 }
-longPressify(document.getElementById('home'), () => { location.href = 'home.html'; });
+longPressify(document.getElementById('home'), () => { location.href = "/static/home.html"; });
 
 /* diag probe: shows which server replica this phone talks to + its entry
    count — compare with the laptop footer to spot split storage. */
