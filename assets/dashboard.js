@@ -631,6 +631,40 @@ function dayWords(w) {
   if (cf) parts.push(cf + (cf === 1 ? ' time confused' : ' times confused'));
   return parts.join(' · ');
 }
+/* The forgetting-trend chart: repeated questions & confusions per day,
+   drawn as an inline SVG so it prints with the report. */
+function doctorChart(weekly) {
+  if (!Array.isArray(weekly) || weekly.length < 2) return '';
+  const W = 640, H = 210, PL = 30, PR = 14, PT = 26, PB = 34;
+  const n = weekly.length;
+  const xs = i => PL + i * (W - PL - PR) / (n - 1);
+  const vals = k => weekly.map(w => +w[k] || 0);
+  const max = Math.max(2, ...vals('repeat_q'), ...vals('confusions'));
+  const ys = v => PT + (H - PT - PB) * (1 - v / max);
+  const line = k => weekly.map((w, i) => (i ? 'L' : 'M') + xs(i) + ',' + ys(+w[k] || 0)).join(' ');
+  const dots = (k, col) => weekly.map((w, i) =>
+    `<circle cx="${xs(i)}" cy="${ys(+w[k] || 0)}" r="3.5" fill="${col}"/>`).join('');
+  const grid = [0, Math.round(max / 2), max].map(v =>
+    `<line x1="${PL}" y1="${ys(v)}" x2="${W - PR}" y2="${ys(v)}" stroke="#ece3d0" stroke-width="1"/>
+     <text x="${PL - 6}" y="${ys(v) + 3.5}" font-size="10" text-anchor="end" fill="#a3937d">${v}</text>`).join('');
+  const days = weekly.map((w, i) =>
+    `<text x="${xs(i)}" y="${H - 10}" font-size="10" text-anchor="middle" fill="#8a7a66">${esc(String(w.week || ''))}</text>`).join('');
+  return `<div style="margin:4px 0 10px">
+    <div style="font-weight:700;font-size:13.5px;margin-bottom:2px">The last 7 days</div>
+    <div style="font-size:11.5px;color:#8a7a66;margin-bottom:6px">
+      <span style="color:#C0392B;font-weight:700">●</span> Repeated questions &nbsp;
+      <span style="color:#2A6FA8;font-weight:700">●</span> Times confused
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#fdfaf2;border-radius:12px">
+      ${grid}
+      <path d="${line('repeat_q')}" fill="none" stroke="#C0392B" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="${line('confusions')}" fill="none" stroke="#2A6FA8" stroke-width="2.2" stroke-linejoin="round"/>
+      ${dots('repeat_q', '#C0392B')}${dots('confusions', '#2A6FA8')}
+      ${days}
+    </svg>
+  </div>`;
+}
+
 function openDoctorModal(c) {
   modalOpen = true;
   document.getElementById('modalTitle').textContent = 'Doctor report — ' + c.ts;
@@ -640,7 +674,7 @@ function openDoctorModal(c) {
     ? `<table class="daytable"><thead><tr><th>Day</th><th>What we counted</th></tr></thead><tbody>${rows}</tbody></table>`
     : '';
   document.getElementById('modalBody').innerHTML =
-    `<div id="doctorPrintable"><div>${mdish(humanize(c.content))}</div>${table}</div>
+    `<div id="doctorPrintable">${doctorChart(c.weekly)}<div>${mdish(humanize(c.content))}</div>${table}</div>
      <button id="printDoctor" class="ghost" style="margin-top:14px;width:100%">Print</button>`;
   document.getElementById('modalOverlay').classList.add('show');
   document.getElementById('printDoctor').addEventListener('click', () => {
