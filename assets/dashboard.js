@@ -207,7 +207,7 @@ function drawInLink(el) {
   d3.select(el)
     .attr('stroke-dasharray', len + ' ' + len)
     .attr('stroke-dashoffset', len)
-    .transition().duration(620).ease(d3.easeCubicOut)
+    .transition().duration(1400).ease(d3.easeCubicOut)
     .attr('stroke-dashoffset', 0)
     .on('end interrupt', function () {
       d3.select(this).attr('stroke-dasharray', null).attr('stroke-dashoffset', null);
@@ -223,7 +223,7 @@ function pulseAlong(aId, bId, color, delay) {
     if (!a || !b || a.x == null || b.x == null) return;
     const dot = gPulse.append('circle')
       .attr('r', 4.5).attr('fill', color || '#dd8a4e').attr('opacity', 0.95);
-    const dur = 850;
+    const dur = 1600;
     const timer = d3.timer(elapsed => {   // d3.timer hands us elapsed-ms, from 0
       const t = Math.min(1, elapsed / dur);
       let p = { x: a.x, y: a.y };
@@ -320,7 +320,9 @@ function updateGraph(data) {
     links.length !== sim.force('link').links().length;
   sim.nodes(nodes);
   sim.force('link').links(links);
-  if (changed) sim.alpha(0.6).restart();   // only reheat when the graph actually grew/shrank
+  // only reheat when the graph actually grew/shrank — and gently when it's a
+  // birth, so the newborn drifts into place instead of being yanked
+  if (changed) sim.alpha(fresh.length ? 0.3 : 0.6).restart();
 
   // New edges draw themselves outward — but only when the graph GREW. On the
   // first paint every edge is "new" and 200 of them drawing at once is noise.
@@ -338,7 +340,7 @@ function updateGraph(data) {
       if (!freshIds.has(l.source)) continue;
       const src = nodesById.get(l.source), tgt = nodesById.get(l.target);
       if (!src || !tgt || src.type !== 'Entry') continue;
-      pulseAlong(l.source, l.target, nodeColor(tgt), 320 + (k++) * 130);
+      pulseAlong(l.source, l.target, nodeColor(tgt), 600 + (k++) * 350);
       if (k >= 5) break;                   // a handful reads as flow; twenty reads as static
     }
     clearTimeout(tlDebounce);
@@ -359,11 +361,11 @@ function flashNode(id, born) {
     // usual attention flash. One transition chain — no fighting over `r`.
     g.attr('opacity', 0);
     sel.attr('r', 0).attr('stroke', '#dd8a4e').attr('stroke-width', 3);
-    g.transition().duration(420).attr('opacity', NODE_OPACITY(g.datum()));
-    sel.transition().duration(460).ease(d3.easeBackOut.overshoot(2.2)).attr('r', r0 * 1.55)
-       .transition().duration(320).attr('r', r0)
-       .transition().duration(300).attr('r', r0 * 1.5)
-       .transition().duration(420).attr('r', r0).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
+    g.transition().duration(800).attr('opacity', NODE_OPACITY(g.datum()));
+    sel.transition().duration(950).ease(d3.easeBackOut.overshoot(1.8)).attr('r', r0 * 1.55)
+       .transition().duration(650).attr('r', r0)
+       .transition().duration(600).attr('r', r0 * 1.5)
+       .transition().duration(850).attr('r', r0).attr('stroke', '#fffdfa').attr('stroke-width', 1.5);
     return;
   }
   sel.transition().duration(350).attr('r', r0 * 2.2).attr('stroke', '#dd8a4e').attr('stroke-width', 4)
