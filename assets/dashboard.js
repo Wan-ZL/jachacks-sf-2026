@@ -175,10 +175,16 @@ let tlDebounce = null;
 // graph reads clean because edges nearly vanish). `mentioned` edges are the
 // hairball-makers — they drop to a whisper.
 const LINK_COLOR = '#c2a983';
-const linkBaseOpacity = d =>
-  d.type === 'mentioned' ? 0.16 :
-  d.type === 'remembers' && d.confidence != null
-    ? Math.max(0.25, Math.min(0.95, +d.confidence)) * 0.8 : 0.35;
+// Stepped link weight by endpoint importance: a line is only DEEP when BOTH
+// ends matter (Margaret, people, facts, loud signals). One big + one small
+// end = light; two small ends (entries, reports, signal fog) = whisper.
+const nodeOf = x => (x && typeof x === 'object') ? x : nodesById.get(x);
+const isMajorNode = n => !!n && n.type !== 'Entry' && n.type !== 'Report' && isLoud(n);
+const linkTier = d =>
+  (isMajorNode(nodeOf(d.source)) ? 1 : 0) + (isMajorNode(nodeOf(d.target)) ? 1 : 0);
+const TIER_OPACITY = [0.10, 0.26, 0.72];
+const TIER_WIDTH = [0.8, 1, 1.6];
+const linkBaseOpacity = d => TIER_OPACITY[linkTier(d)];
 
 function drag() {
   return d3.drag()
@@ -204,7 +210,8 @@ function updateGraph(data) {
     .data(links, d => (d.source.id ?? d.source) + '|' + (d.target.id ?? d.target) + '|' + d.type)
     .join('path')
     .attr('fill', 'none')
-    .attr('stroke', LINK_COLOR).attr('stroke-width', 1)
+    .attr('stroke', LINK_COLOR)
+    .attr('stroke-width', d => TIER_WIDTH[linkTier(d)])
     .attr('opacity', linkBaseOpacity);
 
   const nodeSel = gNode.selectAll('g.node').data(nodes, d => d.id)
